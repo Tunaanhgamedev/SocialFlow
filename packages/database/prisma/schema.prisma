@@ -1,0 +1,434 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// Nhóm 1: Người dùng và tài khoản mạng xã hội
+// ----------------------------------------------------
+
+enum Role {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String?
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  videos          Video[]
+  videoSources    VideoSource[]
+  socialAccounts  SocialAccount[]
+  campaigns       PublishingCampaign[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+enum PlatformType {
+  FACEBOOK
+  TIKTOK
+  YOUTUBE
+  INSTAGRAM
+}
+
+enum AccountType {
+  PAGE
+  PERSONAL
+  BUSINESS
+}
+
+model SocialAccount {
+  id             String       @id @default(uuid())
+  userId         String
+  platform       PlatformType @default(FACEBOOK)
+  accountId      String       // ID từ nền tảng (Page ID, Channel ID)
+  accountName    String
+  accountType    AccountType  @default(PAGE)
+  profilePicUrl  String?
+  isActive       Boolean      @default(true)
+  canAutoPublish Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token          SocialToken?
+  publishingJobs PublishingJob[]
+  publishedPosts PublishedPost[]
+
+  @@unique([platform, accountId])
+  @@map("social_accounts")
+}
+
+model SocialToken {
+  id              String        @id @default(uuid())
+  socialAccountId String        @unique
+  accessTokenEnc  String        // Token mã hóa AES
+  refreshTokenEnc String?
+  expiresAt       DateTime?
+  tokenScope      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  account         SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@map("social_tokens")
+}
+
+// ----------------------------------------------------
+// Nhóm 2: Nguồn video
+// ----------------------------------------------------
+
+enum SourceType {
+  DOUYIN_URL
+  AUTHORIZED_ACCOUNT
+  LOCAL_FOLDER
+  CLOUD_FOLDER
+  MANUAL_UPLOAD
+}
+
+model VideoSource {
+  id            String      @id @default(uuid())
+  userId        String
+  sourceType    SourceType
+  sourceName    String
+  sourceUrl     String?
+  configuration Json?       // Thiết lập quét định kỳ, path thư mục, etc.
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceItems   SourceItem[]
+
+  @@map("video_sources")
+}
+
+model SourceItem {
+  id           String      @id @default(uuid())
+  sourceId     String
+  externalId   String?     // Video ID từ Douyin hoặc mã định danh
+  title        String?
+  rawUrl       String
+  authorName   String?
+  authorUrl    String?
+  isProcessed  Boolean     @default(false)
+  discoveredAt DateTime    @default(now())
+
+  source       VideoSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  video        Video?
+
+  @@map("source_items")
+}
+
+// ----------------------------------------------------
+// Nhóm 3: Quản lý video & tài nguyên
+// ----------------------------------------------------
+
+enum VideoStatus {
+  PENDING
+  DOWNLOADING
+  DOWNLOADED
+  PROCESSING
+  PROCESSED
+  AI_GENERATING
+  READY_FOR_REVIEW
+  APPROVED
+  REJECTED
+  FAILED
+  ARCHIVED
+}
+
+enum RightsStatus {
+  AUTHORIZED
+  PENDING_REVIEW
+  REVOKED
+  PUBLIC_DOMAIN
+}
+
+model Video {
+  id           String       @id @default(uuid())
+  userId       String
+  sourceItemId String?      @unique
+  title        String
+  description  String?
+  sourceType   SourceType   @default(MANUAL_UPLOAD)
+  sourceUrl    String?
+  status       VideoStatus  @default(PENDING)
+  duration     Float?       // Thời lượng giây
+  width        Int?
+  height       Int?
+  aspectRatio  String?      // e.g. "9:16"
+  rightsStatus RightsStatus @default(PENDING_REVIEW)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceItem   SourceItem?  @relation(fields: [sourceItemId], references: [id], onDelete: SetNull)
+  assets       VideoAsset[]
+  rights       VideoRights?
+  processingJobs VideoProcessingJob[]
+  contents     GeneratedContent[]
+  publishingJobs PublishingJob[]
+
+  @@map("videos")
+}
+
+enum AssetType {
+  ORIGINAL
+  PROCESSED_9_16
+  THUMBNAIL
+  AUDIO_EXTRACT
+}
+
+model VideoAsset {
+  id            String    @id @default(uuid())
+  videoId       String
+  assetType     AssetType @default(ORIGINAL)
+  filePath      String    // Đường dẫn local hoặc storage key
+  fileSizeBytes BigInt    @default(0)
+  mimeType      String    @default("video/mp4")
+  metadata      Json?     // codec, bitrate, fps, etc.
+  createdAt     DateTime  @default(now())
+
+  video         Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("video_assets")
+}
+
+model VideoRights {
+  id             String       @id @default(uuid())
+  videoId        String       @unique
+  rightsStatus   RightsStatus @default(PENDING_REVIEW)
+  licenseDocument String?     // Link/path tài liệu cấp quyền
+  authorConsent  Boolean      @default(false)
+  notes          String?
+  verifiedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  video          Video        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("video_rights")
+}
+
+enum JobStatus {
+  QUEUED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model VideoProcessingJob {
+  id           String    @id @default(uuid())
+  videoId      String
+  jobType      String    // "FFMPEG_TRANSCODE", "WATERMARK_CHECK", "THUMBNAIL_GEN"
+  status       JobStatus @default(QUEUED)
+  progress     Int       @default(0)
+  errorMessage String?
+  metadata     Json?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  video        Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("video_processing_jobs")
+}
+
+// ----------------------------------------------------
+// Nhóm 4: AI Content Studio
+// ----------------------------------------------------
+
+model ContentTemplate {
+  id          String       @id @default(uuid())
+  name        String
+  platform    PlatformType @default(FACEBOOK)
+  tone        String       @default("engaging")
+  template    String       // Prompt template với variables {{title}}, {{theme}}
+  isDefault   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  @@map("content_templates")
+}
+
+model GeneratedContent {
+  id            String       @id @default(uuid())
+  videoId       String
+  platform      PlatformType @default(FACEBOOK)
+  language      String       @default("vi")
+  title         String
+  caption       String
+  hashtags      String[]     @default([])
+  pinnedComment String?
+  aiModel       String?      // e.g. "gemini-1.5-flash", "gpt-4o"
+  isApproved    Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  video         Video        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  publishingJobs PublishingJob[]
+
+  @@map("generated_contents")
+}
+
+model Hashtag {
+  id        String   @id @default(uuid())
+  tag       String   @unique
+  category  String?  // "cosplay", "anime", "viral", etc.
+  usageCount Int     @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("hashtags")
+}
+
+// ----------------------------------------------------
+// Nhóm 5: Lịch đăng & Xuất bản (Publishing)
+// ----------------------------------------------------
+
+model PublishingCampaign {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs        PublishingJob[]
+
+  @@map("publishing_campaigns")
+}
+
+enum PublishingStatus {
+  PENDING
+  SCHEDULED
+  PROCESSING
+  PUBLISHING
+  PUBLISHED
+  AWAITING_MANUAL_PUBLISH
+  FAILED
+  CANCELLED
+}
+
+model PublishingJob {
+  id              String           @id @default(uuid())
+  campaignId      String?
+  videoId         String
+  socialAccountId String
+  contentId       String?
+  idempotencyKey  String           @unique
+  scheduledAt     DateTime
+  status          PublishingStatus @default(PENDING)
+  retryCount      Int              @default(0)
+  maxRetries      Int              @default(3)
+  publishedUrl    String?
+  platformPostId  String?
+  errorMessage    String?
+  lastAttemptAt   DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  campaign        PublishingCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  video           Video               @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  account         SocialAccount       @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  content         GeneratedContent?   @relation(fields: [contentId], references: [id], onDelete: SetNull)
+  logs            PublishingLog[]
+  publishedPost   PublishedPost?
+
+  @@index([scheduledAt, status])
+  @@map("publishing_jobs")
+}
+
+model PublishingLog {
+  id              String        @id @default(uuid())
+  publishingJobId String
+  action          String        // "INIT_UPLOAD", "TRANSFER_CHUNK", "FINISH_PUBLISH", "ERROR"
+  status          String
+  responsePayload Json?
+  createdAt       DateTime      @default(now())
+
+  job             PublishingJob @relation(fields: [publishingJobId], references: [id], onDelete: Cascade)
+
+  @@map("publishing_logs")
+}
+
+model PublishedPost {
+  id              String        @id @default(uuid())
+  publishingJobId String        @unique
+  socialAccountId String
+  platformPostId  String
+  permalinkUrl    String
+  publishedAt     DateTime      @default(now())
+
+  job             PublishingJob @relation(fields: [publishingJobId], references: [id], onDelete: Cascade)
+  account         SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  metrics         PostMetric[]
+
+  @@map("published_posts")
+}
+
+// ----------------------------------------------------
+// Nhóm 6: Nhật ký & Thông báo hệ thống
+// ----------------------------------------------------
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // "INFO", "WARNING", "ERROR", "MANUAL_ACTION_REQUIRED"
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String   // "IMPORT_VIDEO", "APPROVE_VIDEO", "SCHEDULE_JOB"
+  resource   String
+  resourceId String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+// ----------------------------------------------------
+// Nhóm 7: Thống kê & Metrics
+// ----------------------------------------------------
+
+model PostMetric {
+  id              String        @id @default(uuid())
+  publishedPostId String
+  views           Int           @default(0)
+  likes           Int           @default(0)
+  comments        Int           @default(0)
+  shares          Int           @default(0)
+  recordedAt      DateTime      @default(now())
+
+  post            PublishedPost @relation(fields: [publishedPostId], references: [id], onDelete: Cascade)
+
+  @@map("post_metrics")
+}

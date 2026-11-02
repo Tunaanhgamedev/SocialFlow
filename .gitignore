@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.cache/
+*.log
+.env
+.env.local
+storage/raw/*
+!storage/raw/.gitkeep
+storage/processed/*
+!storage/processed/.gitkeep
+storage/thumbnails/*
+!storage/thumbnails/.gitkeep
+.DS_Store
+Thumbs.db

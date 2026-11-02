@@ -1,0 +1,21 @@
+{
+  "name": "socialflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SocialFlow - Centralized Multi-Platform Social Media Automation",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @socialflow/api --filter @socialflow/web dev",
+    "dev:api": "pnpm --filter @socialflow/api dev",
+    "dev:web": "pnpm --filter @socialflow/web dev",
+    "dev:worker": "pnpm --filter @socialflow/worker dev",
+    "build": "pnpm --filter @socialflow/shared build && pnpm --filter @socialflow/database build && pnpm --filter @socialflow/api build && pnpm --filter @socialflow/web build",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @socialflow/database db:generate",
+    "db:push": "pnpm --filter @socialflow/database db:push",
+    "db:migrate": "pnpm --filter @socialflow/database db:migrate",
+    "db:studio": "pnpm --filter @socialflow/database db:studio"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
