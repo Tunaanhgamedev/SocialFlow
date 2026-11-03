@@ -90,13 +90,17 @@ export async function streamVideo(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const originalAsset = video.assets?.find((a: any) => a.assetType === 'ORIGINAL') || video.assets?.[0];
-  if (!originalAsset || !originalAsset.filePath) {
+  const asset = video.assets?.find((a: any) => a.assetType === 'PROCESSED_9_16') ||
+                video.assets?.find((a: any) => a.assetType === 'ORIGINAL') ||
+                video.assets?.[0];
+  const storageKey = asset?.storageKey || video.storageKey || asset?.filePath;
+
+  if (!storageKey) {
     res.status(404).json({ success: false, error: { code: 'NO_ASSET', message: 'Không tìm thấy tệp video trên hệ thống' } });
     return;
   }
 
-  videoService.streamVideo(originalAsset.filePath, req, res);
+  await videoService.streamVideo(storageKey, req, res);
 }
 
 export async function getThumbnail(req: Request, res: Response): Promise<void> {

@@ -76,3 +76,18 @@ export enum QueueName {
   PUBLISHING = 'publishing-queue',
   ANALYTICS = 'analytics-queue'
 }
+
+export enum StorageProviderType {
+  LOCAL = 'LOCAL',
+  S3 = 'S3',
+  R2 = 'R2',
+  GCS = 'GCS',
+  SUPABASE = 'SUPABASE'
+}
+
+export enum StorageCategory {
+  ORIGINALS = 'originals',
+  PROCESSED = 'processed',
+  THUMBNAILS = 'thumbnails',
+  TEMP = 'temp'
+}

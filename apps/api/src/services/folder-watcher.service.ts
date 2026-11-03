@@ -193,6 +193,8 @@ export class FolderWatcherService {
           status: VideoStatus.DOWNLOADED,
           fileHash,
           rightsStatus: RightsStatus.PENDING_REVIEW,
+          storageProvider: 'LOCAL',
+          storageKey: saved.storageKey,
           rights: {
             create: {
               rightsStatus: RightsStatus.PENDING_REVIEW,
@@ -206,23 +208,26 @@ export class FolderWatcherService {
       // 4. Extract metadata & generate thumbnail
       const meta = await metadataService.extractMetadata(saved.filePath, video.id);
 
-      // 5. Update Video with metadata
+      // 5. Update Video with metadata & thumbnailKey
       await prisma.video.update({
         where: { id: video.id },
         data: {
           duration: meta.duration,
           width: meta.width,
           height: meta.height,
-          aspectRatio: meta.aspectRatio
+          aspectRatio: meta.aspectRatio,
+          thumbnailKey: meta.thumbnailKey
         }
       });
 
-      // 6. Create Original VideoAsset record
+      // 6. Create Original VideoAsset record (Stores storageKey, not hardcoded disk path)
       await prisma.videoAsset.create({
         data: {
           videoId: video.id,
           assetType: AssetType.ORIGINAL,
-          filePath: saved.filePath,
+          storageProvider: 'LOCAL',
+          storageKey: saved.storageKey,
+          filePath: saved.storageKey,
           fileSizeBytes: BigInt(saved.sizeBytes),
           fileHash,
           mimeType: `video/${meta.format || 'mp4'}`,
@@ -231,13 +236,15 @@ export class FolderWatcherService {
       });
 
       // 7. If thumbnail generated, create Thumbnail Asset
-      if (meta.thumbnailPath) {
+      if (meta.thumbnailKey && meta.thumbnailPath) {
         const thumbStats = fs.statSync(meta.thumbnailPath);
         await prisma.videoAsset.create({
           data: {
             videoId: video.id,
             assetType: AssetType.THUMBNAIL,
-            filePath: meta.thumbnailPath,
+            storageProvider: 'LOCAL',
+            storageKey: meta.thumbnailKey,
+            filePath: meta.thumbnailKey,
             fileSizeBytes: BigInt(thumbStats.size),
             mimeType: 'image/jpeg'
           }

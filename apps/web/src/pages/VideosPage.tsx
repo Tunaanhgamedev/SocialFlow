@@ -526,8 +526,22 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                     <span className="text-slate-400">Dung lượng:</span>
                     <span className="text-white font-mono">{formatFileSize(selectedVideo.assets?.[0]?.fileSizeBytes)}</span>
                   </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-800">
+                    <span className="text-slate-400">Storage Provider:</span>
+                    <span className="text-teal-400 font-mono text-[11px] font-semibold">
+                      {selectedVideo.storageProvider || 'LOCAL'}
+                    </span>
+                  </div>
+                  {(selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey) && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Storage Key:</span>
+                      <span className="text-slate-400 font-mono text-[10px] truncate max-w-[200px]" title={selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey}>
+                        {selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey}
+                      </span>
+                    </div>
+                  )}
                   {selectedVideo.fileHash && (
-                    <div className="flex justify-between items-center pt-1 border-t border-slate-800">
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-800/60">
                       <span className="text-slate-400">Mã SHA-256:</span>
                       <span className="text-slate-500 font-mono text-[10px] truncate max-w-[180px]">
                         {selectedVideo.fileHash}

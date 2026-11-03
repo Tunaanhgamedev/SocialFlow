@@ -5,13 +5,41 @@ import {
   AccountType,
   RightsStatus,
   PublishingStatus,
-  AssetType
+  AssetType,
+  StorageProviderType,
+  StorageCategory
 } from '../enums/index.js';
 
 export interface BaseEntity {
   id: string;
   createdAt: string | Date;
   updatedAt: string | Date;
+}
+
+export interface StorageUploadResult {
+  key: string;
+  category: StorageCategory;
+  fileName: string;
+  sizeBytes: number;
+  hash: string;
+  provider: StorageProviderType;
+  url?: string;
+}
+
+export interface StorageStreamResult {
+  stream: any;
+  contentLength: number;
+  contentType: string;
+  contentRange?: string;
+  isPartial: boolean;
+  totalSize: number;
+}
+
+export interface StorageFileMetadata {
+  size: number;
+  mimeType?: string;
+  lastModified?: Date;
+  hash?: string;
 }
 
 export interface UserSummary {
@@ -30,13 +58,16 @@ export interface VideoMetadata {
   sizeBytes?: number;
   bitrate?: number;
   hasAudio?: boolean;
+  thumbnailKey?: string;
 }
 
 export interface VideoAssetDto {
   id: string;
   videoId: string;
   assetType: AssetType;
-  filePath: string;
+  storageProvider: StorageProviderType;
+  storageKey: string;
+  filePath?: string;
   fileUrl?: string;
   fileSizeBytes: number;
   mimeType: string;
@@ -62,8 +93,12 @@ export interface VideoDto extends BaseEntity {
   duration?: number;
   width?: number;
   height?: number;
+  aspectRatio?: string;
   fileHash?: string;
   rightsStatus: RightsStatus;
+  storageProvider: StorageProviderType;
+  storageKey?: string;
+  thumbnailKey?: string;
   assets?: VideoAssetDto[];
   rights?: VideoRightsDto;
 }

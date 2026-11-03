@@ -159,23 +159,34 @@ enum RightsStatus {
   PUBLIC_DOMAIN
 }
 
+enum StorageProviderType {
+  LOCAL
+  S3
+  R2
+  GCS
+  SUPABASE
+}
+
 model Video {
-  id           String       @id @default(uuid())
-  userId       String
-  sourceItemId String?      @unique
-  title        String
-  description  String?
-  sourceType   SourceType   @default(MANUAL_UPLOAD)
-  sourceUrl    String?
-  status       VideoStatus  @default(PENDING)
-  duration     Float?       // Thời lượng giây
-  width        Int?
-  height       Int?
-  aspectRatio  String?      // e.g. "9:16"
-  fileHash     String?      // Mã SHA-256 chống trùng lặp
-  rightsStatus RightsStatus @default(PENDING_REVIEW)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              String              @id @default(uuid())
+  userId          String
+  sourceItemId    String?             @unique
+  title           String
+  description     String?
+  sourceType      SourceType          @default(MANUAL_UPLOAD)
+  sourceUrl       String?
+  status          VideoStatus         @default(PENDING)
+  duration        Float?              // Thời lượng giây
+  width           Int?
+  height          Int?
+  aspectRatio     String?             // e.g. "9:16"
+  fileHash        String?             // Mã SHA-256 chống trùng lặp
+  rightsStatus    RightsStatus        @default(PENDING_REVIEW)
+  storageProvider StorageProviderType @default(LOCAL)
+  storageKey      String?             // Storage key tương đối: "originals/..."
+  thumbnailKey    String?             // Storage key ảnh bìa: "thumbnails/..."
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   sourceItem   SourceItem?  @relation(fields: [sourceItemId], references: [id], onDelete: SetNull)
@@ -196,15 +207,17 @@ enum AssetType {
 }
 
 model VideoAsset {
-  id            String    @id @default(uuid())
-  videoId       String
-  assetType     AssetType @default(ORIGINAL)
-  filePath      String    // Đường dẫn local hoặc storage key
-  fileSizeBytes BigInt    @default(0)
-  fileHash      String?   // SHA-256 của file asset
-  mimeType      String    @default("video/mp4")
-  metadata      Json?     // codec, bitrate, fps, etc.
-  createdAt     DateTime  @default(now())
+  id              String              @id @default(uuid())
+  videoId         String
+  assetType       AssetType           @default(ORIGINAL)
+  storageProvider StorageProviderType @default(LOCAL)
+  storageKey      String              @default("") // Định danh file không phụ thuộc ổ cứng
+  filePath        String?             // Đường dẫn tương đối hoặc fallback
+  fileSizeBytes   BigInt              @default(0)
+  fileHash        String?             // SHA-256 của file asset
+  mimeType        String              @default("video/mp4")
+  metadata        Json?               // codec, bitrate, fps, etc.
+  createdAt       DateTime            @default(now())
 
   video         Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
 

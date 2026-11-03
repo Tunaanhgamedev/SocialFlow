@@ -18,6 +18,7 @@ export interface ExtractedVideoMetadata {
   bitrate?: number;
   hasAudio?: boolean;
   fps?: number;
+  thumbnailKey?: string;
   thumbnailPath?: string;
 }
 
@@ -121,6 +122,7 @@ export class MetadataService {
 
       if (fs.existsSync(thumbnailFullPath)) {
         result.thumbnailPath = thumbnailFullPath;
+        result.thumbnailKey = `thumbnails/${thumbnailFileName}`;
       }
     } catch (err: any) {
       console.warn(`[MetadataService] Thumbnail generation warning:`, err.message);
