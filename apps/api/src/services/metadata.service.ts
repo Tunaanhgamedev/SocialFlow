@@ -2,8 +2,9 @@ import { exec } from 'child_process';
 import util from 'util';
 import path from 'path';
 import fs from 'fs';
+import { StorageCategory } from '@socialflow/shared';
 import { config } from '../config/index.js';
-import { LocalStorageService } from './storage/LocalStorageService.js';
+import { getStorageProvider, IStorageProvider } from './storage/index.js';
 
 const execAsync = util.promisify(exec);
 
@@ -26,11 +27,10 @@ export class MetadataService {
   private static instance: MetadataService;
   private ffprobeBinary = 'ffprobe';
   private ffmpegBinary = 'ffmpeg';
+  private storage: IStorageProvider;
 
   private constructor() {
-    if (config.storage.localRoot) {
-      // Local check
-    }
+    this.storage = getStorageProvider();
   }
 
   public static getInstance(): MetadataService {
@@ -98,7 +98,7 @@ export class MetadataService {
       // Fallback: estimate from file stats
       try {
         const stats = fs.statSync(videoFilePath);
-        result.duration = Math.max(1, Math.round(stats.size / (500 * 1024))); // crude fallback
+        result.duration = Math.max(1, Math.round(stats.size / (500 * 1024)));
         result.aspectRatio = '9:16';
         result.width = 1080;
         result.height = 1920;
@@ -107,25 +107,41 @@ export class MetadataService {
       }
     }
 
-    // 2. Generate thumbnail screenshot with ffmpeg
-    try {
-      const storageService = LocalStorageService.getInstance();
-      storageService.ensureDirectories();
+    // 2. Generate thumbnail screenshot with ffmpeg and save via Storage Provider
+    const thumbnailFileName = `thumb_${videoId}.jpg`;
+    const tempThumbnailPath = path.join(config.storage.tempDir, thumbnailFileName);
 
-      const thumbnailFileName = `thumb_${videoId}.jpg`;
-      const thumbnailFullPath = path.join(config.storage.thumbnailsDir, thumbnailFileName);
+    try {
+      if (!fs.existsSync(config.storage.tempDir)) {
+        fs.mkdirSync(config.storage.tempDir, { recursive: true });
+      }
 
       const seekSec = result.duration && result.duration > 2 ? 1 : 0;
-      const ffmpegCmd = `"${this.ffmpegBinary}" -y -ss ${seekSec} -i "${videoFilePath}" -vframes 1 -q:v 2 "${thumbnailFullPath}"`;
+      const ffmpegCmd = `"${this.ffmpegBinary}" -y -ss ${seekSec} -i "${videoFilePath}" -vframes 1 -q:v 2 "${tempThumbnailPath}"`;
 
       await execAsync(ffmpegCmd);
 
-      if (fs.existsSync(thumbnailFullPath)) {
-        result.thumbnailPath = thumbnailFullPath;
-        result.thumbnailKey = `thumbnails/${thumbnailFileName}`;
+      if (fs.existsSync(tempThumbnailPath)) {
+        // Upload to Storage Provider (Local or Cloud S3/R2)
+        const uploadResult = await this.storage.upload(
+          StorageCategory.THUMBNAILS,
+          thumbnailFileName,
+          tempThumbnailPath,
+          { contentType: 'image/jpeg' }
+        );
+
+        result.thumbnailKey = uploadResult.key;
+        result.thumbnailPath = this.storage.getAbsolutePath(uploadResult.key);
       }
     } catch (err: any) {
       console.warn(`[MetadataService] Thumbnail generation warning:`, err.message);
+    } finally {
+      // Clean temporary thumbnail
+      if (fs.existsSync(tempThumbnailPath)) {
+        try {
+          fs.unlinkSync(tempThumbnailPath);
+        } catch {}
+      }
     }
 
     return result;

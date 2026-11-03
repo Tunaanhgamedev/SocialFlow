@@ -4,6 +4,7 @@
   "private": true,
   "description": "SocialFlow - Centralized Multi-Platform Social Media Automation",
   "scripts": {
+    "predev": "pnpm --filter @socialflow/shared build && pnpm --filter @socialflow/database build",
     "dev": "pnpm --parallel --filter @socialflow/api --filter @socialflow/web dev",
     "dev:api": "pnpm --filter @socialflow/api dev",
     "dev:web": "pnpm --filter @socialflow/web dev",

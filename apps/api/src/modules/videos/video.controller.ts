@@ -72,11 +72,13 @@ export async function uploadVideos(req: Request, res: Response): Promise<void> {
     data: {
       uploadedCount: result.uploaded.length,
       duplicateCount: result.duplicates.length,
+      failedCount: result.failed.length,
       uploaded: result.uploaded,
       duplicates: result.duplicates,
+      failed: result.failed,
       message: `Đã nạp thành công ${result.uploaded.length} video. ${
-        result.duplicates.length > 0 ? `Bỏ qua ${result.duplicates.length} video trùng lặp.` : ''
-      }`
+        result.duplicates.length > 0 ? `Bỏ qua ${result.duplicates.length} video trùng lặp. ` : ''
+      }${result.failed.length > 0 ? `Thất bại ${result.failed.length} tệp không hợp lệ.` : ''}`
     }
   });
 }

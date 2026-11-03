@@ -1,6 +1,7 @@
 import { prisma, SourceType, RightsStatus, VideoStatus } from '@socialflow/database';
 import { QueueService } from '../../services/queue/QueueService.js';
 import { QueueName } from '@socialflow/shared';
+import { VideoDownloaderService } from '../../services/video-downloader.service.js';
 
 export interface ImportUrlInput {
   url: string;
@@ -101,13 +102,23 @@ export class SourceService {
       }
     });
 
-    // Push download job to BullMQ queue
+    // Push download job to BullMQ queue, with fallback to async local execution
     const queueService = QueueService.getInstance();
-    await queueService.addJob(QueueName.DOWNLOAD, 'download-url', {
-      videoId: video.id,
-      sourceItemId: sourceItem.id,
-      url: input.url
-    });
+    const redisHealth = await queueService.checkHealth();
+
+    if (redisHealth.status === 'connected') {
+      await queueService.addJob(QueueName.DOWNLOAD, 'download-url', {
+        videoId: video.id,
+        sourceItemId: sourceItem.id,
+        url: input.url
+      });
+    } else {
+      // Async background download when Redis is in degraded/standalone mode
+      const downloader = VideoDownloaderService.getInstance();
+      downloader.downloadAndIngest(video.id, input.url).catch((err) => {
+        console.error(`[SourceService] Async download error for video ${video.id}:`, err);
+      });
+    }
 
     return { video, sourceItem };
   }

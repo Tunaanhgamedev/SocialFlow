@@ -2,8 +2,10 @@ import chokidar, { FSWatcher } from 'chokidar';
 import fs from 'fs';
 import path from 'path';
 import { prisma, SourceType, RightsStatus, VideoStatus, AssetType } from '@socialflow/database';
-import { LocalStorageService } from './storage/LocalStorageService.js';
+import { StorageCategory } from '@socialflow/shared';
+import { getStorageProvider, IStorageProvider } from './storage/index.js';
 import { MetadataService } from './metadata.service.js';
+import { VideoValidator } from './video-validator.service.js';
 
 export interface WatcherInfo {
   folderPath: string;
@@ -17,8 +19,13 @@ export class FolderWatcherService {
   private watchers: Map<string, FSWatcher> = new Map();
   private stats: Map<string, WatcherInfo> = new Map();
   private supportedExtensions = new Set(['.mp4', '.mov', '.webm', '.mkv']);
+  private storage: IStorageProvider;
+  private metadataService: MetadataService;
 
-  private constructor() {}
+  private constructor() {
+    this.storage = getStorageProvider();
+    this.metadataService = MetadataService.getInstance();
+  }
 
   public static getInstance(): FolderWatcherService {
     if (!FolderWatcherService.instance) {
@@ -40,12 +47,60 @@ export class FolderWatcherService {
     return created.id;
   }
 
-  public async watchFolder(folderPath: string, autoIngest = true): Promise<WatcherInfo> {
-    const normalizedPath = path.resolve(folderPath);
+  /**
+   * Xác thực và làm sạch đường dẫn thư mục, chống Path Traversal và thư mục hệ thống
+   */
+  public validateFolderPath(folderPath: string): string {
+    if (!folderPath || typeof folderPath !== 'string') {
+      throw new Error('Đường dẫn thư mục không hợp lệ');
+    }
 
+    const normalizedPath = path.resolve(folderPath.trim());
+
+    // 1. Kiểm tra tồn tại và phải là thư mục
     if (!fs.existsSync(normalizedPath)) {
       throw new Error(`Thư mục không tồn tại: ${normalizedPath}`);
     }
+
+    const stat = fs.statSync(normalizedPath);
+    if (!stat.isDirectory()) {
+      throw new Error(`Đường dẫn chỉ định không phải là một thư mục: ${normalizedPath}`);
+    }
+
+    // 2. Chặn các thư mục gốc của ổ đĩa (Root drives) như C:\, D:\, /
+    const parsed = path.parse(normalizedPath);
+    if (parsed.root.toLowerCase() === normalizedPath.toLowerCase() || normalizedPath === '/') {
+      throw new Error(`Bảo mật: Không được phép theo dõi trực tiếp toàn bộ ổ đĩa gốc (${normalizedPath})`);
+    }
+
+    // 3. Chặn các thư mục hệ thống nhạy cảm của Windows / Linux
+    const lower = normalizedPath.toLowerCase();
+    const forbiddenSystemPrefixes = [
+      'c:\\windows',
+      'c:\\program files',
+      'c:\\program files (x86)',
+      'c:\\programdata',
+      'c:\\system volume information',
+      'c:\\$recycle.bin',
+      '/etc',
+      '/var',
+      '/usr',
+      '/bin',
+      '/sbin',
+      '/root'
+    ];
+
+    for (const forbidden of forbiddenSystemPrefixes) {
+      if (lower === forbidden || lower.startsWith(forbidden + '\\') || lower.startsWith(forbidden + '/')) {
+        throw new Error(`Bảo mật: Không được phép theo dõi thư mục hệ thống: ${normalizedPath}`);
+      }
+    }
+
+    return normalizedPath;
+  }
+
+  public async watchFolder(folderPath: string, autoIngest = true): Promise<WatcherInfo> {
+    const normalizedPath = this.validateFolderPath(folderPath);
 
     if (this.watchers.has(normalizedPath)) {
       return this.stats.get(normalizedPath)!;
@@ -115,7 +170,7 @@ export class FolderWatcherService {
   }
 
   public async unwatchFolder(folderPath: string): Promise<boolean> {
-    const normalizedPath = path.resolve(folderPath);
+    const normalizedPath = this.validateFolderPath(folderPath);
     const watcher = this.watchers.get(normalizedPath);
     if (watcher) {
       await watcher.close();
@@ -128,10 +183,7 @@ export class FolderWatcherService {
   }
 
   public async scanFolderImmediate(folderPath: string): Promise<{ totalScanned: number; ingestedCount: number }> {
-    const normalizedPath = path.resolve(folderPath);
-    if (!fs.existsSync(normalizedPath)) {
-      throw new Error(`Thư mục không tồn tại: ${normalizedPath}`);
-    }
+    const normalizedPath = this.validateFolderPath(folderPath);
 
     let totalScanned = 0;
     let ingestedCount = 0;
@@ -158,13 +210,19 @@ export class FolderWatcherService {
   }
 
   public async ingestVideoFile(filePath: string, sourceFolder?: string): Promise<boolean> {
-    try {
-      const storageService = LocalStorageService.getInstance();
-      const metadataService = MetadataService.getInstance();
-      const userId = await this.getDefaultUserId();
+    let savedStorageKey: string | null = null;
+    let createdVideoId: string | null = null;
 
-      // 1. Calculate file hash to prevent duplicates
-      const fileHash = await storageService.calculateFileHash(filePath);
+    try {
+      // 1. Kiểm tra định dạng video thực tế & Magic Bytes
+      const validation = await VideoValidator.validate(filePath);
+      if (!validation.isValid) {
+        console.warn(`[FolderWatcher] Bỏ qua file không hợp lệ (${path.basename(filePath)}): ${validation.error}`);
+        return false;
+      }
+
+      // 2. Tính mã băm SHA-256 để chống trùng lặp
+      const fileHash = await this.storage.calculateHash(filePath);
 
       // Check if video with this hash already exists
       const existing = await prisma.video.findFirst({
@@ -177,89 +235,102 @@ export class FolderWatcherService {
       }
 
       const fileName = path.basename(filePath);
-      const stats = fs.statSync(filePath);
+      const userId = await this.getDefaultUserId();
 
-      // 2. Copy file to storage originals
+      // 3. Nạp file vào Storage Provider (originals)
       const targetFileName = `${Date.now()}_${fileName}`;
-      const saved = await storageService.moveFileToOriginals(filePath, targetFileName);
+      const saved = await this.storage.upload(StorageCategory.ORIGINALS, targetFileName, filePath);
+      savedStorageKey = saved.key;
 
-      // 3. Create Video DB record
-      const video = await prisma.video.create({
-        data: {
-          userId,
-          title: fileName.replace(/\.[^/.]+$/, ''),
-          sourceType: SourceType.LOCAL_FOLDER,
-          sourceUrl: filePath,
-          status: VideoStatus.DOWNLOADED,
-          fileHash,
-          rightsStatus: RightsStatus.PENDING_REVIEW,
-          storageProvider: 'LOCAL',
-          storageKey: saved.storageKey,
-          rights: {
-            create: {
-              rightsStatus: RightsStatus.PENDING_REVIEW,
-              notes: `Đồng bộ từ thư mục: ${sourceFolder || path.dirname(filePath)}`,
-              authorConsent: false
+      const localOriginalPath = this.storage.getAbsolutePath(saved.key);
+
+      // 4. Trích xuất metadata & thumbnail
+      const meta = await this.metadataService.extractMetadata(localOriginalPath, targetFileName);
+
+      // 5. Lưu vào database trong transaction
+      await prisma.$transaction(async (tx) => {
+        const video = await tx.video.create({
+          data: {
+            userId,
+            title: fileName.replace(/\.[^/.]+$/, ''),
+            sourceType: SourceType.LOCAL_FOLDER,
+            sourceUrl: saved.key,
+            status: VideoStatus.DOWNLOADED,
+            fileHash,
+            duration: meta.duration,
+            width: meta.width,
+            height: meta.height,
+            aspectRatio: meta.aspectRatio,
+            thumbnailKey: meta.thumbnailKey,
+            rightsStatus: RightsStatus.PENDING_REVIEW,
+            storageProvider: this.storage.providerType,
+            storageKey: saved.key,
+            rights: {
+              create: {
+                rightsStatus: RightsStatus.PENDING_REVIEW,
+                notes: `Đồng bộ từ thư mục: ${sourceFolder || path.dirname(filePath)}`,
+                authorConsent: false
+              }
             }
           }
-        }
-      });
+        });
 
-      // 4. Extract metadata & generate thumbnail
-      const meta = await metadataService.extractMetadata(saved.filePath, video.id);
+        createdVideoId = video.id;
 
-      // 5. Update Video with metadata & thumbnailKey
-      await prisma.video.update({
-        where: { id: video.id },
-        data: {
-          duration: meta.duration,
-          width: meta.width,
-          height: meta.height,
-          aspectRatio: meta.aspectRatio,
-          thumbnailKey: meta.thumbnailKey
-        }
-      });
-
-      // 6. Create Original VideoAsset record (Stores storageKey, not hardcoded disk path)
-      await prisma.videoAsset.create({
-        data: {
-          videoId: video.id,
-          assetType: AssetType.ORIGINAL,
-          storageProvider: 'LOCAL',
-          storageKey: saved.storageKey,
-          filePath: saved.storageKey,
-          fileSizeBytes: BigInt(saved.sizeBytes),
-          fileHash,
-          mimeType: `video/${meta.format || 'mp4'}`,
-          metadata: meta as any
-        }
-      });
-
-      // 7. If thumbnail generated, create Thumbnail Asset
-      if (meta.thumbnailKey && meta.thumbnailPath) {
-        const thumbStats = fs.statSync(meta.thumbnailPath);
-        await prisma.videoAsset.create({
+        // Create Original VideoAsset record
+        await tx.videoAsset.create({
           data: {
             videoId: video.id,
-            assetType: AssetType.THUMBNAIL,
-            storageProvider: 'LOCAL',
-            storageKey: meta.thumbnailKey,
-            filePath: meta.thumbnailKey,
-            fileSizeBytes: BigInt(thumbStats.size),
-            mimeType: 'image/jpeg'
+            assetType: AssetType.ORIGINAL,
+            storageProvider: this.storage.providerType,
+            storageKey: saved.key,
+            filePath: saved.key,
+            fileSizeBytes: BigInt(saved.sizeBytes),
+            fileHash,
+            mimeType: `video/${meta.format || 'mp4'}`,
+            metadata: meta as any
           }
         });
-      }
 
-      console.log(`[FolderWatcher] Tiếp nhận thành công video: ${video.title} (ID: ${video.id})`);
+        // Create Thumbnail Asset if generated
+        if (meta.thumbnailKey) {
+          const thumbMeta = await this.storage.getMetadata(meta.thumbnailKey);
+          await tx.videoAsset.create({
+            data: {
+              videoId: video.id,
+              assetType: AssetType.THUMBNAIL,
+              storageProvider: this.storage.providerType,
+              storageKey: meta.thumbnailKey,
+              filePath: meta.thumbnailKey,
+              fileSizeBytes: BigInt(thumbMeta.size || 0),
+              mimeType: 'image/jpeg'
+            }
+          });
+        }
+      });
+
+      console.log(`[FolderWatcher] Đã tiếp nhận thành công: ${fileName} (${meta.duration || 0}s, ${meta.aspectRatio || '9:16'})`);
       return true;
     } catch (err: any) {
-      console.error(`[FolderWatcher] Lỗi khi tiếp nhận ${filePath}:`, err.message);
+      console.error(`[FolderWatcher] Lỗi khi nạp file ${filePath}:`, err);
+
+      // Rollback storage & DB if error occurred
+      if (savedStorageKey) {
+        await this.storage.delete(savedStorageKey).catch(() => {});
+      }
+      if (createdVideoId) {
+        await prisma.video.delete({ where: { id: createdVideoId } }).catch(() => {});
+      }
+
       return false;
     }
   }
 
-  public getActiveWatchers(): WatcherInfo[] {
+  public getWatchedFolders(): WatcherInfo[] {
     return Array.from(this.stats.values());
+  }
+
+  public getActiveWatchers(): WatcherInfo[] {
+    return this.getWatchedFolders();
   }
 }

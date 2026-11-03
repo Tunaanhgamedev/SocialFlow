@@ -3,6 +3,7 @@ dist/
 build/
 .cache/
 *.log
+*.zip
 .env
 .env.local
 storage/raw/*

@@ -46,9 +46,12 @@ if %errorlevel% equ 0 (
     net start postgresql-x64-18 >nul 2>&1
 )
 
-:: 5. Kiem tra Prisma Client
+:: 5. Kiem tra Prisma Client va build cac packages noi bo
 echo [*] Dong bo Prisma Client & Database Models...
 call %PNPM_CMD% db:generate >nul 2>&1
+echo [*] Bien dich cac thu vien noi bo (shared & database)...
+call %PNPM_CMD% --filter @socialflow/shared build >nul 2>&1
+call %PNPM_CMD% --filter @socialflow/database build >nul 2>&1
 
 :: 6. Tu dong mo trinh duyet sau 4 giay
 echo [*] Dang khoi dong Backend API va Giao dien Web Dashboard...
