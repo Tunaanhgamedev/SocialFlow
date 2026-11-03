@@ -12,6 +12,7 @@
     "@socialflow/database": "workspace:*",
     "@socialflow/shared": "workspace:*",
     "bullmq": "^5.41.6",
+    "chokidar": "^4.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

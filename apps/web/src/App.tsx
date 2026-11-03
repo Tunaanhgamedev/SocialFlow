@@ -10,6 +10,7 @@ import { CampaignsPage } from './pages/CampaignsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { api } from './services/api';
+import { UploadModal } from './features/video-upload/UploadModal';
 import { ShieldCheck, PlusCircle } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -22,8 +23,9 @@ export const App: React.FC = () => {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Import Modal State
+  // Import & Upload Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [importUrl, setImportUrl] = useState('');
   const [importTitle, setImportTitle] = useState('');
   const [importRightsStatus, setImportRightsStatus] = useState('AUTHORIZED');
@@ -115,6 +117,7 @@ export const App: React.FC = () => {
               videos={videos}
               onRefresh={loadData}
               onOpenImport={() => setIsImportModalOpen(true)}
+              onOpenUpload={() => setIsUploadModalOpen(true)}
               accounts={accounts}
             />
           )}
@@ -255,6 +258,12 @@ export const App: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Multi-File Video Upload Modal */}
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={loadData}
+      />
     </div>
   );
 };

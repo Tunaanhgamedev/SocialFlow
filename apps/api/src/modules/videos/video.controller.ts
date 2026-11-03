@@ -1,83 +1,41 @@
 import { Request, Response } from 'express';
 import { prisma, VideoStatus, RightsStatus, SourceType } from '@socialflow/database';
+import { VideoRepository } from './video.repository.js';
+import { VideoService } from './video.service.js';
 import { AIService } from '../../services/ai/AIProvider.js';
 import { QueueService } from '../../services/queue/QueueService.js';
 import { QueueName } from '@socialflow/shared';
 
-// Helper to get default admin user id for single user mode
-async function getDefaultUserId(): Promise<string> {
-  const existing = await prisma.user.findFirst();
-  if (existing) return existing.id;
-  const created = await prisma.user.create({
-    data: {
-      email: 'admin@socialflow.local',
-      name: 'Cos Dolove Admin',
-      role: 'ADMIN'
-    }
-  });
-  return created.id;
-}
+const videoRepo = VideoRepository.getInstance();
+const videoService = VideoService.getInstance();
 
 export async function listVideos(req: Request, res: Response): Promise<void> {
-  const { status, limit = '20', page = '1', search } = req.query;
-  const take = Math.min(Math.max(parseInt(limit as string, 10) || 20, 1), 100);
-  const skip = (Math.max(parseInt(page as string, 10) || 1, 1) - 1) * take;
+  const { status, rightsStatus, sourceType, search, sortBy, limit = '20', page = '1' } = req.query;
 
-  const where: any = {};
-  if (status) {
-    where.status = status as VideoStatus;
-  }
-  if (search) {
-    where.title = { contains: search as string, mode: 'insensitive' };
-  }
-
-  const [total, items] = await Promise.all([
-    prisma.video.count({ where }),
-    prisma.video.findMany({
-      where,
-      take,
-      skip,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        assets: true,
-        rights: true,
-        contents: true,
-        publishingJobs: {
-          include: { account: true }
-        }
-      }
-    })
-  ]);
+  const result = await videoRepo.findMany({
+    status: status as string,
+    rightsStatus: rightsStatus as string,
+    sourceType: sourceType as string,
+    search: search as string,
+    sortBy: sortBy as string,
+    page: parseInt(page as string, 10) || 1,
+    limit: parseInt(limit as string, 10) || 20
+  });
 
   res.json({
     success: true,
-    data: items,
+    data: result.items,
     meta: {
-      total,
-      page: Math.floor(skip / take) + 1,
-      limit: take
+      total: result.total,
+      page: parseInt(page as string, 10) || 1,
+      limit: parseInt(limit as string, 10) || 20
     }
   });
 }
 
 export async function getVideoById(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
-
-  const item = await prisma.video.findUnique({
-    where: { id },
-    include: {
-      assets: true,
-      rights: true,
-      contents: true,
-      processingJobs: true,
-      publishingJobs: {
-        include: {
-          account: true,
-          logs: true
-        }
-      }
-    }
-  });
+  const item = await videoRepo.findById(id);
 
   if (!item) {
     res.status(404).json({
@@ -90,18 +48,74 @@ export async function getVideoById(req: Request, res: Response): Promise<void> {
   res.json({ success: true, data: item });
 }
 
-export async function createVideo(req: Request, res: Response): Promise<void> {
-  const { title, description, sourceType = 'MANUAL_UPLOAD', sourceUrl, rightsStatus = 'AUTHORIZED' } = req.body;
+export async function uploadVideos(req: Request, res: Response): Promise<void> {
+  const files = (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
 
-  if (!title) {
+  if (!files || files.length === 0) {
     res.status(400).json({
       success: false,
-      error: { code: 'BAD_REQUEST', message: 'Tiêu đề video là bắt buộc' }
+      error: { code: 'BAD_REQUEST', message: 'Vui lòng đính kèm ít nhất một tệp video (MP4, MOV, WebM)' }
     });
     return;
   }
 
-  const userId = await getDefaultUserId();
+  const { rightsStatus = 'PENDING_REVIEW', licenseNote, authorConsent } = req.body;
+
+  const result = await videoService.uploadVideoFiles(files, {
+    rightsStatus: rightsStatus as RightsStatus,
+    licenseNote,
+    authorConsent: authorConsent === 'true' || authorConsent === true
+  });
+
+  res.status(201).json({
+    success: true,
+    data: {
+      uploadedCount: result.uploaded.length,
+      duplicateCount: result.duplicates.length,
+      uploaded: result.uploaded,
+      duplicates: result.duplicates,
+      message: `Đã nạp thành công ${result.uploaded.length} video. ${
+        result.duplicates.length > 0 ? `Bỏ qua ${result.duplicates.length} video trùng lặp.` : ''
+      }`
+    }
+  });
+}
+
+export async function streamVideo(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const video = await videoRepo.findById(id);
+
+  if (!video) {
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy video' } });
+    return;
+  }
+
+  const originalAsset = video.assets?.find((a: any) => a.assetType === 'ORIGINAL') || video.assets?.[0];
+  if (!originalAsset || !originalAsset.filePath) {
+    res.status(404).json({ success: false, error: { code: 'NO_ASSET', message: 'Không tìm thấy tệp video trên hệ thống' } });
+    return;
+  }
+
+  videoService.streamVideo(originalAsset.filePath, req, res);
+}
+
+export async function getThumbnail(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  await videoService.getThumbnail(id, res);
+}
+
+export async function createVideo(req: Request, res: Response): Promise<void> {
+  const { title, description, sourceType = 'MANUAL_UPLOAD', sourceUrl, rightsStatus = 'PENDING_REVIEW' } = req.body;
+
+  if (!title) {
+    res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'Tiêu đề video là bắt buộc' } });
+    return;
+  }
+
+  const existingUser = await prisma.user.findFirst();
+  const userId = existingUser ? existingUser.id : (await prisma.user.create({
+    data: { email: 'admin@socialflow.local', name: 'Cos Dolove Admin', role: 'ADMIN' }
+  })).id;
 
   const video = await prisma.video.create({
     data: {
@@ -119,9 +133,7 @@ export async function createVideo(req: Request, res: Response): Promise<void> {
         }
       }
     },
-    include: {
-      rights: true
-    }
+    include: { rights: true }
   });
 
   res.status(201).json({ success: true, data: video });
@@ -133,10 +145,7 @@ export async function generateAIContent(req: Request, res: Response): Promise<vo
 
   const video = await prisma.video.findUnique({ where: { id } });
   if (!video) {
-    res.status(404).json({
-      success: false,
-      error: { code: 'NOT_FOUND', message: 'Không tìm thấy video' }
-    });
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy video' } });
     return;
   }
 
@@ -175,19 +184,17 @@ export async function approveVideo(req: Request, res: Response): Promise<void> {
   });
 
   if (!video) {
-    res.status(404).json({
-      success: false,
-      error: { code: 'NOT_FOUND', message: 'Không tìm thấy video' }
-    });
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy video' } });
     return;
   }
 
-  if (video.rights?.rightsStatus !== RightsStatus.AUTHORIZED) {
+  const validStatuses: RightsStatus[] = [RightsStatus.AUTHORIZED, RightsStatus.LICENSED, RightsStatus.PUBLIC_DOMAIN];
+  if (!video.rights || !validStatuses.includes(video.rights.rightsStatus)) {
     res.status(400).json({
       success: false,
       error: {
         code: 'RIGHTS_NOT_VERIFIED',
-        message: 'Video chưa có quyền sử dụng hợp lệ (AUTHORIZED). Không thể duyệt đăng!'
+        message: 'Video chưa có quyền sử dụng hợp lệ (AUTHORIZED hoặc LICENSED). Vui lòng cập nhật quyền trước khi duyệt!'
       }
     });
     return;
@@ -225,7 +232,6 @@ export async function processVideo(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Create processing job record
   const job = await prisma.videoProcessingJob.create({
     data: {
       videoId: video.id,
@@ -235,7 +241,6 @@ export async function processVideo(req: Request, res: Response): Promise<void> {
     }
   });
 
-  // Add to BullMQ queue if Redis is connected
   const queueService = QueueService.getInstance();
   await queueService.addJob(QueueName.PROCESSING, 'process-video', {
     videoId: video.id,
@@ -258,6 +263,12 @@ export async function processVideo(req: Request, res: Response): Promise<void> {
 
 export async function deleteVideo(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
-  await prisma.video.delete({ where: { id } });
-  res.json({ success: true, message: 'Đã xóa video' });
+  const deleted = await videoService.deleteVideo(id);
+
+  if (!deleted) {
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy video để xóa' } });
+    return;
+  }
+
+  res.json({ success: true, message: 'Đã xóa video và các tệp liên quan thành công' });
 }

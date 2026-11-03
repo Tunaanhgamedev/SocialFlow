@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { config } from '../../config/index.js';
 
 export class LocalStorageService {
@@ -19,9 +20,11 @@ export class LocalStorageService {
   public ensureDirectories(): void {
     const dirs = [
       config.storage.localRoot,
+      config.storage.originalsDir,
       config.storage.rawDir,
       config.storage.processedDir,
-      config.storage.thumbnailsDir
+      config.storage.thumbnailsDir,
+      config.storage.tempDir
     ];
 
     for (const dir of dirs) {
@@ -31,16 +34,57 @@ export class LocalStorageService {
     }
   }
 
-  public saveRawVideo(fileName: string, buffer: Buffer): { filePath: string; sizeBytes: number } {
+  public async calculateFileHash(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const hash = crypto.createHash('sha256');
+      const stream = fs.createReadStream(filePath);
+      stream.on('data', (chunk) => hash.update(chunk));
+      stream.on('end', () => resolve(hash.digest('hex')));
+      stream.on('error', (err) => reject(err));
+    });
+  }
+
+  public saveRawVideo(fileName: string, buffer: Buffer): { filePath: string; sizeBytes: number; hash: string } {
     this.ensureDirectories();
-    const filePath = path.join(config.storage.rawDir, fileName);
+    const filePath = path.join(config.storage.originalsDir, fileName);
     fs.writeFileSync(filePath, buffer);
     const stats = fs.statSync(filePath);
-    return { filePath, sizeBytes: stats.size };
+    const hash = crypto.createHash('sha256').update(buffer).digest('hex');
+    return { filePath, sizeBytes: stats.size, hash };
+  }
+
+  public async moveFileToOriginals(
+    tempFilePath: string,
+    targetFileName: string
+  ): Promise<{ filePath: string; sizeBytes: number; hash: string }> {
+    this.ensureDirectories();
+    const destinationPath = path.join(config.storage.originalsDir, targetFileName);
+
+    // Calculate hash before or after copy
+    const hash = await this.calculateFileHash(tempFilePath);
+
+    // Move or copy
+    fs.copyFileSync(tempFilePath, destinationPath);
+    try {
+      fs.unlinkSync(tempFilePath);
+    } catch {
+      // ignore temp cleanup error
+    }
+
+    const stats = fs.statSync(destinationPath);
+    return {
+      filePath: destinationPath,
+      sizeBytes: stats.size,
+      hash
+    };
+  }
+
+  public getOriginalVideoPath(fileName: string): string {
+    return path.join(config.storage.originalsDir, fileName);
   }
 
   public getRawVideoPath(fileName: string): string {
-    return path.join(config.storage.rawDir, fileName);
+    return path.join(config.storage.originalsDir, fileName);
   }
 
   public getProcessedVideoPath(fileName: string): string {
@@ -57,8 +101,13 @@ export class LocalStorageService {
 
   public deleteFile(filePath: string): boolean {
     if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      return true;
+      try {
+        fs.unlinkSync(filePath);
+        return true;
+      } catch (err) {
+        console.error('Error deleting file:', filePath, err);
+        return false;
+      }
     }
     return false;
   }

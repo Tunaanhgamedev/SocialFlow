@@ -152,8 +152,10 @@ enum VideoStatus {
 
 enum RightsStatus {
   AUTHORIZED
+  LICENSED
   PENDING_REVIEW
   REVOKED
+  PROHIBITED
   PUBLIC_DOMAIN
 }
 
@@ -170,6 +172,7 @@ model Video {
   width        Int?
   height       Int?
   aspectRatio  String?      // e.g. "9:16"
+  fileHash     String?      // Mã SHA-256 chống trùng lặp
   rightsStatus RightsStatus @default(PENDING_REVIEW)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -198,6 +201,7 @@ model VideoAsset {
   assetType     AssetType @default(ORIGINAL)
   filePath      String    // Đường dẫn local hoặc storage key
   fileSizeBytes BigInt    @default(0)
+  fileHash      String?   // SHA-256 của file asset
   mimeType      String    @default("video/mp4")
   metadata      Json?     // codec, bitrate, fps, etc.
   createdAt     DateTime  @default(now())
@@ -213,6 +217,7 @@ model VideoRights {
   rightsStatus   RightsStatus @default(PENDING_REVIEW)
   licenseDocument String?     // Link/path tài liệu cấp quyền
   authorConsent  Boolean      @default(false)
+  evidence       String?      // Bằng chứng cấp quyền / tin nhắn chấp thuận
   notes          String?
   verifiedAt     DateTime?
   createdAt      DateTime     @default(now())

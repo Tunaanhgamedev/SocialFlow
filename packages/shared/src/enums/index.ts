@@ -35,9 +35,19 @@ export enum AccountType {
 
 export enum RightsStatus {
   AUTHORIZED = 'AUTHORIZED',
+  LICENSED = 'LICENSED',
   PENDING_REVIEW = 'PENDING_REVIEW',
   REVOKED = 'REVOKED',
+  PROHIBITED = 'PROHIBITED',
   PUBLIC_DOMAIN = 'PUBLIC_DOMAIN'
+}
+
+export enum VideoSortOption {
+  NEWEST = 'NEWEST',
+  OLDEST = 'OLDEST',
+  SIZE_DESC = 'SIZE_DESC',
+  DURATION_DESC = 'DURATION_DESC',
+  TITLE_ASC = 'TITLE_ASC'
 }
 
 export enum PublishingStatus {

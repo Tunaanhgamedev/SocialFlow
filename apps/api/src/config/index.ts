@@ -22,9 +22,11 @@ export const config = {
 
   storage: {
     localRoot: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage'),
-    rawDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'raw'),
+    rawDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'originals'),
+    originalsDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'originals'),
     processedDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'processed'),
     thumbnailsDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'thumbnails'),
+    tempDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'temp'),
   },
 
   ai: {

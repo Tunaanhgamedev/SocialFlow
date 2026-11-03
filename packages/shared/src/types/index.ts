@@ -42,6 +42,17 @@ export interface VideoAssetDto {
   mimeType: string;
 }
 
+export interface VideoRightsDto {
+  id?: string;
+  videoId?: string;
+  rightsStatus: RightsStatus;
+  licenseDocument?: string | null;
+  authorConsent: boolean;
+  evidence?: string | null;
+  notes?: string | null;
+  verifiedAt?: string | Date | null;
+}
+
 export interface VideoDto extends BaseEntity {
   title: string;
   description?: string;
@@ -51,8 +62,35 @@ export interface VideoDto extends BaseEntity {
   duration?: number;
   width?: number;
   height?: number;
+  fileHash?: string;
   rightsStatus: RightsStatus;
   assets?: VideoAssetDto[];
+  rights?: VideoRightsDto;
+}
+
+export interface RightsUpdateInput {
+  rightsStatus: RightsStatus;
+  licenseDocument?: string;
+  evidence?: string;
+  notes?: string;
+  authorConsent?: boolean;
+}
+
+export interface FolderWatchStatus {
+  folderPath: string;
+  isWatching: boolean;
+  filesFound: number;
+  lastScannedAt?: string;
+}
+
+export interface VideoFilterParams {
+  status?: string;
+  rightsStatus?: string;
+  sourceType?: string;
+  search?: string;
+  sortBy?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface SocialAccountDto extends BaseEntity {

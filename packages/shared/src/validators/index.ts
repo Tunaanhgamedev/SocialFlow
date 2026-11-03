@@ -35,7 +35,22 @@ export const schedulePublishingSchema = z.object({
   ).min(1, { message: 'Cần chọn ít nhất một kênh đích' })
 });
 
+export const updateRightsSchema = z.object({
+  rightsStatus: z.nativeEnum(RightsStatus),
+  licenseDocument: z.string().optional(),
+  evidence: z.string().optional(),
+  notes: z.string().optional(),
+  authorConsent: z.boolean().default(false)
+});
+
+export const folderWatchSchema = z.object({
+  folderPath: z.string().min(1, { message: 'Đường dẫn thư mục không được để trống' }),
+  autoIngest: z.boolean().default(true)
+});
+
 export type ImportDouyinInput = z.infer<typeof importDouyinSchema>;
 export type CreateSourceInput = z.infer<typeof createSourceSchema>;
 export type GenerateContentInput = z.infer<typeof generateContentSchema>;
 export type SchedulePublishingInput = z.infer<typeof schedulePublishingSchema>;
+export type UpdateRightsInput = z.infer<typeof updateRightsSchema>;
+export type FolderWatchInput = z.infer<typeof folderWatchSchema>;

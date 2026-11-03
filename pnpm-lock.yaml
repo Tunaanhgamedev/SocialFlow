@@ -23,6 +23,9 @@ importers:
       bullmq:
         specifier: ^5.41.6
         version: 5.81.5
+      chokidar:
+        specifier: ^4.0.3
+        version: 4.0.3
       cors:
         specifier: ^2.8.5
         version: 2.8.6

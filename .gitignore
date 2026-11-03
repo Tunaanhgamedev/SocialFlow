@@ -11,5 +11,9 @@ storage/processed/*
 !storage/processed/.gitkeep
 storage/thumbnails/*
 !storage/thumbnails/.gitkeep
+storage/originals/*
+!storage/originals/.gitkeep
+storage/temp/*
+!storage/temp/.gitkeep
 .DS_Store
 Thumbs.db
