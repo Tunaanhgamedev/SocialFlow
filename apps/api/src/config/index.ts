@@ -1,9 +1,20 @@
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 
-// Load .env from root if not already loaded
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+// Resolve Monorepo Project Root
+let projectRoot = process.cwd();
+if (!fs.existsSync(path.resolve(projectRoot, 'storage')) && fs.existsSync(path.resolve(projectRoot, '../../storage'))) {
+  projectRoot = path.resolve(projectRoot, '../..');
+}
+
+// Load .env
+dotenv.config({ path: path.resolve(projectRoot, '.env') });
 dotenv.config();
+
+const storageBase = process.env.STORAGE_LOCAL_ROOT
+  ? (path.isAbsolute(process.env.STORAGE_LOCAL_ROOT) ? process.env.STORAGE_LOCAL_ROOT : path.resolve(projectRoot, process.env.STORAGE_LOCAL_ROOT))
+  : path.resolve(projectRoot, 'storage');
 
 export const config = {
   env: process.env.NODE_ENV || 'development',
@@ -21,12 +32,12 @@ export const config = {
   },
 
   storage: {
-    localRoot: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage'),
-    rawDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'originals'),
-    originalsDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'originals'),
-    processedDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'processed'),
-    thumbnailsDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'thumbnails'),
-    tempDir: path.resolve(process.cwd(), process.env.STORAGE_LOCAL_ROOT || './storage', 'temp'),
+    localRoot: storageBase,
+    rawDir: path.resolve(storageBase, 'originals'),
+    originalsDir: path.resolve(storageBase, 'originals'),
+    processedDir: path.resolve(storageBase, 'processed'),
+    thumbnailsDir: path.resolve(storageBase, 'thumbnails'),
+    tempDir: path.resolve(storageBase, 'temp'),
   },
 
   ai: {
