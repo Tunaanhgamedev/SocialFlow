@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, TrendingUp, CheckCircle, Clock, AlertTriangle, HardDrive } from 'lucide-react';
+import { BarChart3, TrendingUp, CheckCircle, HardDrive } from 'lucide-react';
 
 interface AnalyticsPageProps {
   overview: any;
@@ -25,49 +25,49 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ overview, systemHe
     : 100;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+        <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
           <BarChart3 className="w-5 h-5 text-teal-400" />
           <span>Thống Kê & Hiệu Suất (Analytics)</span>
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-400 mt-0.5">
           Tổng quan số liệu xuất bản Reels, tỷ lệ thành công và dung lượng lưu trữ cục bộ
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
             <span>Tỷ lệ xuất bản thành công</span>
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-3xl font-extrabold text-white">{successRate}%</div>
-          <p className="text-xs text-slate-500 mt-1">Dựa trên {totalPublishedOrScheduled} jobs phát hành</p>
+          <div className="text-2xl sm:text-3xl font-extrabold text-white">{successRate}%</div>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Dựa trên {totalPublishedOrScheduled} jobs phát hành</p>
         </div>
 
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span>Dung lượng lưu trữ cục bộ</span>
+            <span>Dung lượng lưu trữ</span>
             <HardDrive className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="text-3xl font-extrabold text-white">{storageMb} MB</div>
-          <p className="text-xs text-slate-500 mt-1">{storageStats.totalFiles} files trong thư mục storage/</p>
+          <div className="text-2xl sm:text-3xl font-extrabold text-white">{storageMb} MB</div>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">{storageStats.totalFiles} files trong thư mục storage/</p>
         </div>
 
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
             <span>Kênh đích hoạt động</span>
             <CheckCircle className="w-4 h-4 text-teal-400" />
           </div>
-          <div className="text-3xl font-extrabold text-white">{stats.totalAccounts}</div>
-          <p className="text-xs text-slate-500 mt-1">Facebook Fanpages & Cá nhân</p>
+          <div className="text-2xl sm:text-3xl font-extrabold text-white">{stats.totalAccounts}</div>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Facebook Fanpages & Cá nhân</p>
         </div>
       </div>
 
       {/* Breakdown Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        <div className="p-4 sm:p-6 bg-slate-900/80 border border-slate-800 rounded-2xl">
           <h3 className="text-sm font-bold text-white mb-4">Trạng thái phát hành Reels</h3>
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center">
@@ -94,7 +94,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ overview, systemHe
           </div>
         </div>
 
-        <div className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl">
+        <div className="p-4 sm:p-6 bg-slate-900/80 border border-slate-800 rounded-2xl">
           <h3 className="text-sm font-bold text-white mb-4">Kho nội dung & bản quyền</h3>
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center">

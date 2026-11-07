@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Plus, Calendar, CheckCircle } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import { api } from '../services/api';
 
 interface CampaignsPageProps {
@@ -32,22 +32,22 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ campaigns, onRefre
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
             <Layers className="w-5 h-5 text-teal-400" />
             <span>Chiến Dịch Phát Hành (Campaigns)</span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 mt-0.5">
             Tổ chức và phân phối các video theo từng chiến dịch chủ đề (Cosplay Theme, Brand Event...)
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Create Campaign Form */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
           <h2 className="text-sm font-bold text-white mb-1">Tạo Chiến Dịch Mới</h2>
           <p className="text-xs text-slate-400 mb-4">Nhóm các video phát hành theo mục tiêu</p>
 
@@ -60,7 +60,7 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ campaigns, onRefre
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               />
             </div>
 
@@ -71,14 +71,14 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ campaigns, onRefre
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white resize-none"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white resize-none text-sm sm:text-xs"
               />
             </div>
 
             <button
               type="submit"
               disabled={isCreating}
-              className="w-full py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold rounded-lg mt-2"
+              className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold rounded-lg mt-2 active:scale-98 transition-colors"
             >
               {isCreating ? 'Đang tạo...' : 'Tạo Chiến Dịch'}
             </button>
@@ -86,7 +86,7 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ campaigns, onRefre
         </div>
 
         {/* Campaign List */}
-        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
           <h2 className="text-sm font-bold text-white mb-3">Danh sách chiến dịch ({campaigns.length})</h2>
 
           {campaigns.length === 0 ? (
@@ -94,16 +94,16 @@ export const CampaignsPage: React.FC<CampaignsPageProps> = ({ campaigns, onRefre
               Chưa có chiến dịch nào được tạo. Tạo chiến dịch đầu tiên để gom nhóm các bài đăng Reels.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               {campaigns.map((c) => (
                 <div
                   key={c.id}
-                  className="p-4 bg-slate-950/70 border border-slate-800 rounded-xl hover:border-teal-500/30 transition-all flex flex-col justify-between"
+                  className="p-3.5 sm:p-4 bg-slate-950/70 border border-slate-800 rounded-xl hover:border-teal-500/30 transition-all flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-white">{c.name}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="font-bold text-xs sm:text-sm text-white truncate pr-2">{c.name}</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
                         Active
                       </span>
                     </div>

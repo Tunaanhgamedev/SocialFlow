@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Share2, Plus, CheckCircle, AlertCircle, Trash2, Facebook, ShieldCheck } from 'lucide-react';
+import { Share2, CheckCircle, AlertCircle, Trash2, Facebook } from 'lucide-react';
 import { api } from '../services/api';
 
 interface AccountsPageProps {
@@ -46,21 +46,21 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
             <Share2 className="w-5 h-5 text-teal-400" />
             <span>Kênh Mạng Xã Hội (Social Accounts)</span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 mt-0.5">
             Quản lý Fanpage Facebook, tài khoản cá nhân và các nền tảng phân phối video
           </p>
         </div>
       </div>
 
       {/* Info notice about Personal vs Page */}
-      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-start space-x-3 text-xs leading-relaxed">
+      <div className="p-3.5 sm:p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-start space-x-3 text-xs leading-relaxed">
         <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
         <div className="text-slate-300">
           <span className="font-bold text-white">Lưu ý kiến trúc Facebook:</span>
@@ -72,9 +72,9 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Form to Connect Account */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
           <h2 className="text-sm font-bold text-white mb-1">Kết nối Kênh Mới</h2>
           <p className="text-xs text-slate-400 mb-4">Thêm Fanpage hoặc trang cá nhân của bạn</p>
 
@@ -84,7 +84,7 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
               <select
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               >
                 <option value="FACEBOOK">Facebook</option>
                 <option value="TIKTOK" disabled>TikTok (Sắp mở ở Phase 7)</option>
@@ -98,7 +98,7 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
               <select
                 value={accountType}
                 onChange={(e) => setAccountType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               >
                 <option value="PAGE">Facebook Fanpage (Tự động Graph API)</option>
                 <option value="PERSONAL">Facebook Cá nhân (Bán tự động / Nhắc lịch)</option>
@@ -113,7 +113,7 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 required
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               />
             </div>
 
@@ -125,14 +125,14 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 required
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold rounded-lg mt-2"
+              className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold rounded-lg mt-2 active:scale-98 transition-colors"
             >
               {isSubmitting ? 'Đang lưu...' : 'Lưu kết nối tài khoản'}
             </button>
@@ -140,7 +140,7 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
         </div>
 
         {/* Account List */}
-        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
           <h2 className="text-sm font-bold text-white mb-3">Tài khoản đã liên kết ({accounts.length})</h2>
 
           {accounts.length === 0 ? (
@@ -152,21 +152,21 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
               {accounts.map((acc) => (
                 <div
                   key={acc.id}
-                  className="p-4 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition-colors"
+                  className="p-3.5 sm:p-4 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition-colors"
                 >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <div className="flex items-center space-x-3 sm:space-x-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                       <Facebook className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-sm text-white">{acc.accountName}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                        <span className="font-semibold text-xs sm:text-sm text-white truncate">{acc.accountName}</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
                           {acc.accountType}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5 flex items-center space-x-2">
-                        <span>ID: {acc.accountId}</span>
+                      <div className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="truncate">ID: {acc.accountId}</span>
                         <span>•</span>
                         {acc.canAutoPublish ? (
                           <span className="text-emerald-400 flex items-center space-x-1">
@@ -185,7 +185,7 @@ export const AccountsPage: React.FC<AccountsPageProps> = ({ accounts, onRefresh 
 
                   <button
                     onClick={() => handleDelete(acc.id)}
-                    className="p-2 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800"
+                    className="p-2 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 shrink-0"
                     title="Ngắt kết nối"
                   >
                     <Trash2 className="w-4 h-4" />

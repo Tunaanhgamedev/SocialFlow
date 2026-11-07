@@ -5,7 +5,25 @@
 @layer base {
   body {
     @apply bg-slate-950 text-slate-100 antialiased font-sans;
+    -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* iOS Safe Area Padding Support */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Smooth horizontal scroll without scrollbar on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom scrollbars */

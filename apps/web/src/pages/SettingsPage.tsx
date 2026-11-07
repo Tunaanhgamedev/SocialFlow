@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings as SettingsIcon, Database, Cpu, HardDrive, Sparkles, Server, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Database, Cpu, HardDrive, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface SettingsPageProps {
   systemHealth: any;
@@ -13,20 +13,20 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ systemHealth }) => {
   const system = systemHealth?.system || {};
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+        <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
           <SettingsIcon className="w-5 h-5 text-teal-400" />
           <span>Cấu Hình & Hệ Thống (Settings & Health)</span>
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-400 mt-0.5">
           Trạng thái kết nối PostgreSQL, Redis/BullMQ, AI Multi-provider và lưu trữ cục bộ
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         {/* Database Service */}
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-white font-bold text-sm">
               <Database className="w-4 h-4 text-blue-400" />
@@ -48,14 +48,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ systemHealth }) => {
             Lưu trữ users, videos, rights, campaigns, publishing jobs và logs xuất bản.
           </p>
           {db.error && (
-            <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-300 text-xs">
+            <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-300 text-xs break-words">
               {db.error}
             </div>
           )}
         </div>
 
         {/* Redis & BullMQ */}
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-white font-bold text-sm">
               <Cpu className="w-4 h-4 text-rose-400" />
@@ -76,16 +76,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ systemHealth }) => {
             Quản lý hàng đợi tải video, xử lý FFmpeg transcode, gọi AI và lập lịch xuất bản Reels.
           </p>
           <div className="text-xs text-slate-400">
-            Host: <span className="text-slate-200">{redis.host}:{redis.port}</span>
+            Host: <span className="text-slate-200">{redis.host || 'localhost'}:{redis.port || '6379'}</span>
           </div>
         </div>
 
         {/* Local Storage Service */}
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-white font-bold text-sm">
               <HardDrive className="w-4 h-4 text-amber-400" />
-              <span>Local Storage Engine</span>
+              <span>Storage Engine</span>
             </div>
             <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -93,15 +93,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ systemHealth }) => {
             </span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Lưu video gốc (`storage/raw`), video đã render 9:16 (`storage/processed`) và thumbnail ảnh bìa.
+            Hỗ trợ cắm rút LocalStorage / CloudStorage (S3, Cloudflare R2), lưu video gốc, render 9:16 và thumbnail.
           </p>
-          <div className="text-xs text-slate-400">
-            Tổng số tệp: <span className="text-white font-semibold">{storage.stats?.totalFiles || 0}</span> | Dung lượng: <span className="text-white font-semibold">{((storage.stats?.sizeBytes || 0) / 1024 / 1024).toFixed(1)} MB</span>
+          <div className="text-xs text-slate-400 flex flex-wrap gap-x-3 gap-y-1">
+            <span>Tổng số tệp: <strong className="text-white">{storage.stats?.totalFiles || 0}</strong></span>
+            <span>Dung lượng: <strong className="text-white">{((storage.stats?.sizeBytes || 0) / 1024 / 1024).toFixed(1)} MB</strong></span>
           </div>
         </div>
 
         {/* AI Multi-Provider */}
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
+        <div className="p-4 sm:p-5 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-white font-bold text-sm">
               <Sparkles className="w-4 h-4 text-purple-400" />
@@ -132,11 +133,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ systemHealth }) => {
       </div>
 
       {/* System info footer */}
-      <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
-        <span>Node.js: <strong className="text-slate-200">{system.nodeVersion}</strong></span>
-        <span>Uptime: <strong className="text-slate-200">{system.uptimeSeconds}s</strong></span>
-        <span>RAM: <strong className="text-slate-200">{system.memoryUsageMb} MB</strong></span>
-        <span>SocialFlow v1.0.0 — Monorepo Architecture</span>
+      <div className="p-3.5 sm:p-4 bg-slate-950/60 rounded-xl border border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span>Node.js: <strong className="text-slate-200">{system.nodeVersion}</strong></span>
+          <span>Uptime: <strong className="text-slate-200">{system.uptimeSeconds}s</strong></span>
+          <span>RAM: <strong className="text-slate-200">{system.memoryUsageMb} MB</strong></span>
+        </div>
+        <span className="text-slate-500 text-[11px]">SocialFlow v1.0.0 — Multi-Platform</span>
       </div>
     </div>
   );

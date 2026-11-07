@@ -7,7 +7,6 @@ import {
   Upload,
   ShieldCheck,
   Trash2,
-  Eye,
   RefreshCw,
   FolderSync,
   PlayCircle,
@@ -122,21 +121,21 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
             <DownloadCloud className="w-5 h-5 text-teal-400" />
             <span>Quản Lý Nguồn Video (Sources & Folder Watcher)</span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 mt-0.5">
             Tiếp nhận video từ Douyin URL, theo dõi thư mục máy tính (Chokidar) và đồng bộ tự động
           </p>
         </div>
 
         <button
           onClick={onOpenImport}
-          className="inline-flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shadow-teal-500/20"
+          className="inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-teal-500/20 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Dán Link Tiếp Nhận</span>
@@ -144,22 +143,22 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
       </div>
 
       {/* Folder Watcher & Auto-Sync Section */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-teal-500/10 text-teal-400 rounded-xl">
+            <div className="p-2 bg-teal-500/10 text-teal-400 rounded-xl shrink-0">
               <FolderSync className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-white">Đồng Bộ Thư Mục Máy Tính (Folder Watcher Service)</h2>
               <p className="text-xs text-slate-400">
-                Tự động quét và tiếp nhận video khi bạn thả tệp vào bất kỳ thư mục nào trên máy Windows
+                Tự động quét và tiếp nhận video khi bạn thả tệp vào bất kỳ thư mục nào trên máy
               </p>
             </div>
           </div>
           <button
             onClick={loadWatchers}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs"
+            className="flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs self-start sm:self-auto"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Làm mới danh sách</span>
@@ -174,13 +173,13 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
               placeholder="Nhập đường dẫn thư mục, ví dụ: E:\Videos hoặc D:\DouyinDownloads"
               value={folderPathInput}
               onChange={(e) => setFolderPathInput(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-white focus:outline-none focus:border-teal-500"
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-white text-sm sm:text-xs focus:outline-none focus:border-teal-500"
             />
           </div>
           <button
             type="submit"
             disabled={isWatching}
-            className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl whitespace-nowrap shadow-md shadow-teal-500/20"
+            className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl whitespace-nowrap shadow-md shadow-teal-500/20 active:scale-95"
           >
             {isWatching ? 'Đang kích hoạt...' : 'Bắt đầu Theo Dõi (Watch)'}
           </button>
@@ -192,20 +191,20 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
             <div className="text-[11px] font-semibold text-slate-400 uppercase">Thư mục đang theo dõi:</div>
             <div className="divide-y divide-slate-800 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden text-xs">
               {watchers.map((w) => (
-                <div key={w.folderPath} className="p-3 flex items-center justify-between gap-3">
-                  <div className="space-y-0.5 truncate">
+                <div key={w.folderPath} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5 min-w-0">
                     <div className="font-semibold text-white flex items-center space-x-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                       <span className="truncate">{w.folderPath}</span>
                     </div>
                     <div className="text-[11px] text-slate-400 flex items-center space-x-2">
                       <span>Đã phát hiện: {w.filesFound} files</span>
                       <span>•</span>
-                      <span>Lần quét gần nhất: {new Date(w.lastScannedAt).toLocaleTimeString('vi-VN')}</span>
+                      <span>Lần quét: {new Date(w.lastScannedAt).toLocaleTimeString('vi-VN')}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 shrink-0">
+                  <div className="flex items-center space-x-2 shrink-0 self-end sm:self-auto">
                     <button
                       onClick={() => handleImmediateScan(w.folderPath)}
                       disabled={isScanning}
@@ -230,9 +229,9 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
       </div>
 
       {/* Sources Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Create Source Config Form */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
           <h2 className="text-sm font-bold text-white mb-1">Cấu hình Nguồn Mới</h2>
           <p className="text-xs text-slate-400 mb-4">Lưu cấu hình kênh nguồn phục vụ thống kê & quản lý</p>
 
@@ -242,7 +241,7 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
               <select
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               >
                 <option value="DOUYIN_URL">Douyin URL / Dán Link</option>
                 <option value="AUTHORIZED_ACCOUNT">Tài khoản Douyin được cấp phép</option>
@@ -259,7 +258,7 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
                 value={sourceName}
                 onChange={(e) => setSourceName(e.target.value)}
                 required
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               />
             </div>
 
@@ -270,14 +269,14 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
                 placeholder="https://v.douyin.com/... hoặc E:\Videos"
                 value={sourceUrl}
                 onChange={(e) => setSourceUrl(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
               />
             </div>
 
             <button
               type="submit"
               disabled={isCreating}
-              className="w-full py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg mt-2"
+              className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg mt-2 transition-colors active:scale-98"
             >
               {isCreating ? 'Đang tạo...' : 'Lưu nguồn video'}
             </button>
@@ -285,7 +284,7 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
         </div>
 
         {/* Sources List */}
-        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-5">
+        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
           <h2 className="text-sm font-bold text-white mb-3">Danh sách nguồn đã cấu hình ({sources.length})</h2>
 
           {sources.length === 0 ? (
@@ -299,15 +298,15 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
                   key={s.id}
                   className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition-colors"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 rounded-xl bg-teal-500/10 text-teal-400">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="p-2.5 rounded-xl bg-teal-500/10 text-teal-400 shrink-0">
                       {s.sourceType === 'DOUYIN_URL' && <LinkIcon className="w-4 h-4" />}
                       {s.sourceType === 'LOCAL_FOLDER' && <Folder className="w-4 h-4" />}
                       {s.sourceType === 'MANUAL_UPLOAD' && <Upload className="w-4 h-4" />}
                       {s.sourceType === 'AUTHORIZED_ACCOUNT' && <ShieldCheck className="w-4 h-4" />}
                     </div>
-                    <div>
-                      <div className="text-xs font-semibold text-white">{s.sourceName}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-white truncate">{s.sourceName}</div>
                       <div className="text-[11px] text-slate-400 flex items-center space-x-2">
                         <span>{s.sourceType}</span>
                         <span>•</span>
@@ -318,7 +317,7 @@ export const SourcesPage: React.FC<SourcesPageProps> = ({ sources, onRefresh, on
 
                   <button
                     onClick={() => handleDelete(s.id)}
-                    className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg"
+                    className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg shrink-0"
                     title="Xóa nguồn"
                   >
                     <Trash2 className="w-4 h-4" />

@@ -53,16 +53,16 @@ export const RightsModal: React.FC<RightsModalProps> = ({ isOpen, video, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
           <div className="flex items-center space-x-2">
-            <div className={`p-2 rounded-xl ${isEligible ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+            <div className={`p-2 rounded-xl shrink-0 ${isEligible ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
               {isEligible ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-base font-bold text-white">Quản lý Bản quyền & Quyền Sử Dụng</h2>
-              <p className="text-xs text-slate-400 truncate max-w-sm">{video.title}</p>
+              <p className="text-xs text-slate-400 truncate max-w-xs sm:max-w-sm">{video.title}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -99,7 +99,7 @@ export const RightsModal: React.FC<RightsModalProps> = ({ isOpen, video, onClose
             <select
               value={rightsStatus}
               onChange={(e) => setRightsStatus(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white text-sm sm:text-xs"
             >
               <option value="AUTHORIZED">AUTHORIZED – Đã có sự cho phép từ chủ sở hữu</option>
               <option value="LICENSED">LICENSED – Có giấy phép sử dụng hợp pháp</option>
@@ -117,7 +117,7 @@ export const RightsModal: React.FC<RightsModalProps> = ({ isOpen, video, onClose
               placeholder="Ví dụ: Link tin nhắn trao đổi, email xác nhận, ảnh chụp sự đồng ý..."
               value={evidence}
               onChange={(e) => setEvidence(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
             />
           </div>
 
@@ -128,7 +128,7 @@ export const RightsModal: React.FC<RightsModalProps> = ({ isOpen, video, onClose
               placeholder="Ví dụ: LIC-2026-COSDOLOVE-001"
               value={licenseDocument}
               onChange={(e) => setLicenseDocument(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
             />
           </div>
 
@@ -139,7 +139,7 @@ export const RightsModal: React.FC<RightsModalProps> = ({ isOpen, video, onClose
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white resize-none"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white resize-none text-sm sm:text-xs"
             />
           </div>
 
@@ -157,19 +157,19 @@ export const RightsModal: React.FC<RightsModalProps> = ({ isOpen, video, onClose
             </label>
           </div>
 
-          <div className="flex items-center justify-end space-x-2 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700"
+              className="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 font-medium text-center"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-teal-500/20"
+              className="w-full sm:w-auto px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-teal-500/20 text-center"
             >
               {isSubmitting ? 'Đang lưu...' : 'Lưu Quyền Sử Dụng'}
             </button>

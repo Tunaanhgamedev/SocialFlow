@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Clock, CheckCircle2, AlertTriangle, ExternalLink, RefreshCw } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ExternalLink, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 
 export const CalendarPage: React.FC = () => {
@@ -56,24 +56,24 @@ export const CalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
             <CalendarIcon className="w-5 h-5 text-teal-400" />
             <span>Lịch Đăng Bài (Publishing Calendar)</span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 mt-0.5">
             Theo dõi hàng đợi phát hành video, xử lý các bài đăng bán tự động và kiểm tra nhật ký
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {['ALL', 'SCHEDULED', 'AWAITING_MANUAL_PUBLISH', 'PUBLISHED', 'FAILED'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === st
                   ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
                   : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'
@@ -91,11 +91,11 @@ export const CalendarPage: React.FC = () => {
           Đang tải danh sách lịch đăng...
         </div>
       ) : jobs.length === 0 ? (
-        <div className="py-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/40">
+        <div className="py-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/40 p-4">
           <Clock className="w-10 h-10 text-slate-600 mx-auto mb-2" />
           <p className="text-sm font-semibold text-slate-300">Không có lịch đăng nào</p>
           <p className="text-xs text-slate-500 mt-1">
-            Vào mục "Video Library", chọn một video đã được duyệt và bấm "Lên lịch đăng Reels".
+            Vào mục "Kho Video", chọn một video đã được duyệt và bấm "Lên lịch xuất bản Reels".
           </p>
         </div>
       ) : (
@@ -103,17 +103,17 @@ export const CalendarPage: React.FC = () => {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-all"
+              className="p-3.5 sm:p-4 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-slate-700 transition-all"
             >
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <span className="font-bold text-sm text-white">{job.video?.title || 'Video'}</span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-teal-300 border border-slate-700">
+                  <span className="font-bold text-xs sm:text-sm text-white truncate">{job.video?.title || 'Video'}</span>
+                  <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded bg-slate-800 text-teal-300 border border-slate-700 shrink-0">
                     {job.account?.accountName} ({job.account?.accountType})
                   </span>
                 </div>
 
-                <div className="text-xs text-slate-400 flex items-center space-x-3">
+                <div className="text-[11px] sm:text-xs text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="flex items-center space-x-1">
                     <Clock className="w-3.5 h-3.5 text-slate-500" />
                     <span>Lịch: {new Date(job.scheduledAt).toLocaleString('vi-VN')}</span>
@@ -123,16 +123,16 @@ export const CalendarPage: React.FC = () => {
                 </div>
 
                 {job.content?.caption && (
-                  <p className="text-xs text-slate-400 italic line-clamp-1 pt-1">
+                  <p className="text-xs text-slate-400 italic line-clamp-1 pt-0.5">
                     "{job.content.caption}"
                   </p>
                 )}
               </div>
 
               {/* Status and Action Buttons */}
-              <div className="flex items-center space-x-3 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-auto">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                  className={`px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold border ${
                     job.status === 'PUBLISHED'
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                       : job.status === 'AWAITING_MANUAL_PUBLISH'
@@ -148,7 +148,7 @@ export const CalendarPage: React.FC = () => {
                 {job.status === 'AWAITING_MANUAL_PUBLISH' && (
                   <button
                     onClick={() => handleConfirmManual(job.id)}
-                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition-colors"
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition-colors active:scale-95"
                   >
                     Xác nhận đã đăng
                   </button>
@@ -157,7 +157,7 @@ export const CalendarPage: React.FC = () => {
                 {job.status === 'FAILED' && (
                   <button
                     onClick={() => handleRetry(job.id)}
-                    className="px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-white font-semibold text-xs rounded-xl transition-colors"
+                    className="px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-white font-semibold text-xs rounded-xl transition-colors active:scale-95"
                   >
                     Thử lại
                   </button>
@@ -168,7 +168,7 @@ export const CalendarPage: React.FC = () => {
                     href={job.publishedUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-1.5 text-teal-400 hover:text-teal-300 rounded border border-slate-700 bg-slate-800"
+                    className="p-1.5 text-teal-400 hover:text-teal-300 rounded-lg border border-slate-700 bg-slate-800"
                     title="Mở bài đăng Facebook"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -178,7 +178,7 @@ export const CalendarPage: React.FC = () => {
                 {job.status === 'SCHEDULED' && (
                   <button
                     onClick={() => handleCancel(job.id)}
-                    className="text-xs text-slate-500 hover:text-rose-400"
+                    className="text-xs text-slate-500 hover:text-rose-400 px-2 py-1"
                   >
                     Hủy lịch
                   </button>

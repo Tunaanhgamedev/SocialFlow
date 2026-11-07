@@ -4,7 +4,6 @@ import {
   Sparkles,
   CheckCircle,
   XCircle,
-  Clock,
   ShieldCheck,
   ShieldAlert,
   Search,
@@ -15,10 +14,8 @@ import {
   LayoutGrid,
   List,
   Upload,
-  HardDrive,
-  Eye,
   Lock,
-  Maximize2
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { RightsModal } from '../features/rights-management/RightsModal';
@@ -227,23 +224,23 @@ export const VideosPage: React.FC<VideosPageProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
             <Film className="w-5 h-5 text-teal-400" />
             <span>Thư Viện Video (Video Library)</span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 mt-0.5">
             Quản lý kho video đã tiếp nhận, kiểm tra quyền sử dụng, xem trước và tạo nội dung AI
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
           <button
             onClick={onOpenUpload}
-            className="inline-flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 font-semibold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm"
+            className="inline-flex items-center justify-center space-x-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
           >
             <Upload className="w-4 h-4 text-teal-400" />
             <span>Tải Video Lên</span>
@@ -251,33 +248,34 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
           <button
             onClick={onOpenImport}
-            className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md shadow-teal-500/20"
+            className="inline-flex items-center justify-center space-x-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all shadow-md shadow-teal-500/20 active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>Dán Link Tiếp Nhận</span>
+            <span>Dán Link Douyin</span>
           </button>
         </div>
       </div>
 
       {/* Filter, Sort & Search Toolbar */}
-      <div className="bg-slate-900/80 p-3.5 rounded-2xl border border-slate-800 space-y-3">
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
+      <div className="bg-slate-900/80 p-3 sm:p-4 rounded-2xl border border-slate-800 space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          {/* Search Box */}
+          <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Tìm kiếm video theo tiêu đề..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
+              className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-sm sm:text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
             />
           </div>
 
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <div className="flex items-center space-x-2">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+              className="flex-1 sm:flex-none bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm sm:text-xs text-slate-200 focus:outline-none focus:border-teal-500"
             >
               <option value="NEWEST">Mới nhất trước</option>
               <option value="OLDEST">Cũ nhất trước</option>
@@ -287,17 +285,21 @@ export const VideosPage: React.FC<VideosPageProps> = ({
             </select>
 
             {/* View Mode Switcher */}
-            <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 p-0.5">
+            <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 p-0.5 shrink-0">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg ${viewMode === 'grid' ? 'bg-teal-500/20 text-teal-400' : 'text-slate-400 hover:text-white'}`}
+                className={`p-2 rounded-lg transition-colors ${
+                  viewMode === 'grid' ? 'bg-teal-500/20 text-teal-400' : 'text-slate-400 hover:text-white'
+                }`}
                 title="Dạng lưới"
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-lg ${viewMode === 'list' ? 'bg-teal-500/20 text-teal-400' : 'text-slate-400 hover:text-white'}`}
+                className={`p-2 rounded-lg transition-colors ${
+                  viewMode === 'list' ? 'bg-teal-500/20 text-teal-400' : 'text-slate-400 hover:text-white'
+                }`}
                 title="Dạng danh sách"
               >
                 <List className="w-4 h-4" />
@@ -307,7 +309,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800/80 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/80 text-xs">
           <span className="text-slate-400 text-[11px] mr-1">Trạng thái:</span>
           {['ALL', 'DOWNLOADED', 'PROCESSED', 'APPROVED', 'PENDING', 'REJECTED'].map((st) => (
             <button
@@ -323,7 +325,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
             </button>
           ))}
 
-          <span className="text-slate-400 text-[11px] ml-3 mr-1">Bản quyền:</span>
+          <span className="text-slate-400 text-[11px] ml-2 mr-1">Bản quyền:</span>
           {['ALL', 'AUTHORIZED', 'LICENSED', 'PENDING_REVIEW', 'PROHIBITED'].map((rt) => (
             <button
               key={rt}
@@ -342,20 +344,20 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
       {/* Videos Display Area */}
       {filteredVideos.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/30">
+        <div className="py-16 sm:py-20 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/30 p-4">
           <Film className="w-10 h-10 text-slate-600 mx-auto mb-3" />
           <p className="text-sm font-semibold text-slate-300">Không tìm thấy video nào phù hợp</p>
           <p className="text-xs text-slate-500 mt-1">Hãy tải video lên từ máy tính hoặc dán link Douyin để bắt đầu</p>
-          <div className="mt-4 flex items-center justify-center space-x-3">
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5">
             <button
               onClick={onOpenUpload}
-              className="px-4 py-2 bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700"
+              className="w-full sm:w-auto px-4 py-2 bg-slate-800 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-700"
             >
               Tải video từ máy tính
             </button>
             <button
               onClick={onOpenImport}
-              className="px-4 py-2 bg-teal-500 text-slate-950 rounded-xl text-xs font-bold hover:bg-teal-400"
+              className="w-full sm:w-auto px-4 py-2 bg-teal-500 text-slate-950 rounded-xl text-xs font-bold hover:bg-teal-400"
             >
               Dán Link Tiếp Nhận
             </button>
@@ -363,7 +365,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
         </div>
       ) : viewMode === 'grid' ? (
         /* GRID VIEW */
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
           {filteredVideos.map((video) => (
             <div
               key={video.id}
@@ -373,7 +375,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
               }`}
             >
               <div>
-                {/* Thumbnail Preview Container */}
+                {/* Thumbnail Preview Container (9:14 / 9:16 Vertical Reels) */}
                 <div className="aspect-[9/13] w-full rounded-xl bg-slate-950 border border-slate-800/90 relative overflow-hidden flex items-center justify-center mb-2.5">
                   <img
                     src={api.getThumbnailUrl(video.id)}
@@ -425,80 +427,82 @@ export const VideosPage: React.FC<VideosPageProps> = ({
       ) : (
         /* LIST VIEW */
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-slate-800 text-[11px] font-semibold uppercase text-slate-400 bg-slate-950/60">
-                <th className="py-3 px-4">Preview</th>
-                <th className="py-3 px-4">Tiêu đề Video</th>
-                <th className="py-3 px-4">Nguồn</th>
-                <th className="py-3 px-4">Thời lượng / Size</th>
-                <th className="py-3 px-4">Bản quyền</th>
-                <th className="py-3 px-4">Trạng thái</th>
-                <th className="py-3 px-4 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredVideos.map((video) => (
-                <tr
-                  key={video.id}
-                  onClick={() => setSelectedVideo(video)}
-                  className="hover:bg-slate-800/40 cursor-pointer transition-colors"
-                >
-                  <td className="py-2 px-4">
-                    <div className="w-12 h-16 rounded-lg bg-slate-950 border border-slate-800 overflow-hidden relative">
-                      <img
-                        src={api.getThumbnailUrl(video.id)}
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 font-medium text-white max-w-xs truncate">{video.title}</td>
-                  <td className="py-3 px-4 text-slate-400">{video.sourceType}</td>
-                  <td className="py-3 px-4 text-slate-300 font-mono text-[11px]">
-                    {formatDuration(video.duration)} • {formatFileSize(video.assets?.[0]?.fileSizeBytes)}
-                  </td>
-                  <td className="py-3 px-4">{getRightsBadge(video)}</td>
-                  <td className="py-3 px-4">{getStatusBadge(video.status)}</td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedVideo(video);
-                      }}
-                      className="text-teal-400 hover:text-teal-300 font-medium text-xs px-2 py-1 rounded bg-slate-800"
-                    >
-                      Chi tiết
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs min-w-[680px]">
+              <thead>
+                <tr className="border-b border-slate-800 text-[11px] font-semibold uppercase text-slate-400 bg-slate-950/60">
+                  <th className="py-3 px-4">Preview</th>
+                  <th className="py-3 px-4">Tiêu đề Video</th>
+                  <th className="py-3 px-4">Nguồn</th>
+                  <th className="py-3 px-4">Thời lượng / Size</th>
+                  <th className="py-3 px-4">Bản quyền</th>
+                  <th className="py-3 px-4">Trạng thái</th>
+                  <th className="py-3 px-4 text-right">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {filteredVideos.map((video) => (
+                  <tr
+                    key={video.id}
+                    onClick={() => setSelectedVideo(video)}
+                    className="hover:bg-slate-800/40 cursor-pointer transition-colors"
+                  >
+                    <td className="py-2 px-4">
+                      <div className="w-12 h-16 rounded-lg bg-slate-950 border border-slate-800 overflow-hidden relative">
+                        <img
+                          src={api.getThumbnailUrl(video.id)}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 font-medium text-white max-w-xs truncate">{video.title}</td>
+                    <td className="py-3 px-4 text-slate-400">{video.sourceType}</td>
+                    <td className="py-3 px-4 text-slate-300 font-mono text-[11px]">
+                      {formatDuration(video.duration)} • {formatFileSize(video.assets?.[0]?.fileSizeBytes)}
+                    </td>
+                    <td className="py-3 px-4">{getRightsBadge(video)}</td>
+                    <td className="py-3 px-4">{getStatusBadge(video.status)}</td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedVideo(video);
+                        }}
+                        className="text-teal-400 hover:text-teal-300 font-medium text-xs px-2.5 py-1 rounded bg-slate-800"
+                      >
+                        Chi tiết
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* Video Detail Modal with Built-in HTML5 Video Player */}
+      {/* Video Detail Modal with Responsive 9:16 HTML5 Video Player */}
       {selectedVideo && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-6 shadow-2xl">
-            <div className="flex items-start justify-between border-b border-slate-800 pb-3 mb-5">
-              <div>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-slate-800 pb-3 mb-4 sm:mb-5">
+              <div className="pr-2 min-w-0">
                 <span className="text-xs uppercase font-semibold text-teal-400">Trình phát & Chi tiết Video</span>
-                <h2 className="text-lg font-bold text-white mt-0.5">{selectedVideo.title}</h2>
+                <h2 className="text-base sm:text-lg font-bold text-white mt-0.5 truncate">{selectedVideo.title}</h2>
               </div>
               <button
                 onClick={() => setSelectedVideo(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-white p-1 rounded-lg shrink-0"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column: Interactive Video Player */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+              {/* Left Column: Interactive 9:16 Vertical Video Player */}
               <div className="space-y-4">
-                <div className="rounded-xl overflow-hidden bg-black border border-slate-800 relative aspect-[9/14] flex items-center justify-center shadow-lg">
+                <div className="rounded-xl overflow-hidden bg-black border border-slate-800 relative aspect-[9/14] sm:aspect-[9/16] max-h-[46vh] sm:max-h-[58vh] mx-auto flex items-center justify-center shadow-lg w-full max-w-[320px] lg:max-w-none">
                   <video
                     key={selectedVideo.id}
                     controls
@@ -535,7 +539,10 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                   {(selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey) && (
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Storage Key:</span>
-                      <span className="text-slate-400 font-mono text-[10px] truncate max-w-[200px]" title={selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey}>
+                      <span
+                        className="text-slate-400 font-mono text-[10px] truncate max-w-[180px] sm:max-w-[220px]"
+                        title={selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey}
+                      >
                         {selectedVideo.storageKey || selectedVideo.assets?.[0]?.storageKey}
                       </span>
                     </div>
@@ -543,7 +550,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                   {selectedVideo.fileHash && (
                     <div className="flex justify-between items-center pt-1 border-t border-slate-800/60">
                       <span className="text-slate-400">Mã SHA-256:</span>
-                      <span className="text-slate-500 font-mono text-[10px] truncate max-w-[180px]">
+                      <span className="text-slate-500 font-mono text-[10px] truncate max-w-[160px] sm:max-w-[180px]">
                         {selectedVideo.fileHash}
                       </span>
                     </div>
@@ -554,7 +561,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
               {/* Right Column: Workflow Controls, Rights Management & AI Content */}
               <div className="space-y-4 text-xs">
                 {/* Rights Management Quick Card */}
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5">
+                <div className="bg-slate-950 p-3.5 sm:p-4 rounded-xl border border-slate-800 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-white flex items-center space-x-1.5">
                       <ShieldCheck className="w-4 h-4 text-teal-400" />
@@ -570,7 +577,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
                   <div className="flex items-center space-x-2">
                     {getRightsBadge(selectedVideo)}
-                    <span className="text-slate-300 text-[11px]">
+                    <span className="text-slate-300 text-[11px] truncate">
                       {selectedVideo.rights?.authorConsent ? '• Đã có xác nhận của tác giả' : '• Chưa có văn bản thỏa thuận'}
                     </span>
                   </div>
@@ -587,7 +594,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                     <button
                       onClick={() => handleGenerateAI(selectedVideo.id)}
                       disabled={isGenerating}
-                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 font-medium"
+                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 font-medium active:scale-95 transition-transform"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                       <span>{isGenerating ? 'Đang tạo...' : 'Tạo AI Caption'}</span>
@@ -595,7 +602,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
                     <button
                       onClick={() => handleProcessVideo(selectedVideo.id)}
-                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 font-medium"
+                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 font-medium active:scale-95 transition-transform"
                     >
                       <Play className="w-3.5 h-3.5 text-blue-400" />
                       <span>FFmpeg 9:16</span>
@@ -603,7 +610,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
                     <button
                       onClick={() => handleApprove(selectedVideo.id)}
-                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 font-medium"
+                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 font-medium active:scale-95 transition-transform"
                     >
                       <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Duyệt Video</span>
@@ -611,7 +618,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
                     <button
                       onClick={() => handleReject(selectedVideo.id)}
-                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 font-medium"
+                      className="flex items-center justify-center space-x-1.5 p-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 font-medium active:scale-95 transition-transform"
                     >
                       <XCircle className="w-3.5 h-3.5 text-rose-400" />
                       <span>Từ chối</span>
@@ -620,7 +627,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
                   <button
                     onClick={() => setIsScheduling(!isScheduling)}
-                    className="w-full flex items-center justify-center space-x-2 p-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md transition-all"
+                    className="w-full flex items-center justify-center space-x-2 p-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md transition-all active:scale-98"
                   >
                     <Calendar className="w-4 h-4" />
                     <span>Lên lịch xuất bản Reels</span>
@@ -629,14 +636,14 @@ export const VideosPage: React.FC<VideosPageProps> = ({
 
                 {/* Scheduling form */}
                 {isScheduling && (
-                  <form onSubmit={handleScheduleSubmit} className="p-4 bg-slate-950 rounded-xl border border-teal-500/40 space-y-3">
+                  <form onSubmit={handleScheduleSubmit} className="p-3.5 sm:p-4 bg-slate-950 rounded-xl border border-teal-500/40 space-y-3">
                     <div className="text-xs font-semibold text-teal-300">Lên lịch đăng Reels Facebook</div>
                     <div>
                       <label className="text-[11px] text-slate-400 block mb-1">Kênh đích (Page hoặc Cá nhân):</label>
                       <select
                         value={scheduleTargetAccountId}
                         onChange={(e) => setScheduleTargetAccountId(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
                         required
                       >
                         <option value="">-- Chọn tài khoản đích --</option>
@@ -654,14 +661,14 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                         type="datetime-local"
                         value={scheduleDate}
                         onChange={(e) => setScheduleDate(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm sm:text-xs"
                         required
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg"
+                      className="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg transition-colors"
                     >
                       Xác nhận xếp lịch đăng
                     </button>
@@ -669,7 +676,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                 )}
 
                 {/* AI Content Preview */}
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div className="bg-slate-950 p-3.5 sm:p-4 rounded-xl border border-slate-800">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-white flex items-center space-x-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
@@ -694,7 +701,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <div className="py-6 text-center text-slate-500">
+                    <div className="py-6 text-center text-slate-500 text-xs">
                       Chưa có nội dung AI. Bấm "Tạo AI Caption" để tạo tiêu đề và hashtag.
                     </div>
                   )}
@@ -703,7 +710,7 @@ export const VideosPage: React.FC<VideosPageProps> = ({
                 <div className="flex justify-end pt-1">
                   <button
                     onClick={() => handleDelete(selectedVideo.id)}
-                    className="flex items-center space-x-1 text-rose-400 hover:text-rose-300 text-xs px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10"
+                    className="flex items-center space-x-1 text-rose-400 hover:text-rose-300 text-xs px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Xóa Video khỏi hệ thống</span>
